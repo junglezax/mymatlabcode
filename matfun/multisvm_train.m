@@ -1,0 +1,24 @@
+function [models, usedLabels] = multisvm_train(TrainingSet,GroupTrain)
+%Models a given training set with a corresponding group vector and 
+%classifies a given test set using an SVM classifier according to a 
+%one vs. all relation. 
+%
+%This code was written by Cody Neuburger cneuburg@fau.edu
+%Florida Atlantic University, Florida USA
+%This code was adapted and cleaned from Anand Mishra's multisvm function
+%found at http://www.mathworks.com/matlabcentral/fileexchange/33170-multi-class-support-vector-machine/
+
+usedLabels = unique(GroupTrain);
+numClasses = numel(usedLabels);
+
+%build models
+for k=1:numClasses
+    %Vectorized statement that binarizes Group
+    %where 1 is the current class and 0 is all other classes
+    G1vAll=(GroupTrain==usedLabels(k));
+	if numel(G1vAll) ~= 0
+		models(k) = svmtrain(TrainingSet,G1vAll);
+	else
+		models(k) = [0]; % TODO
+	end
+end

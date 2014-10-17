@@ -1,0 +1,31 @@
+95张家具图片，分两类：椅子和非椅子
+转为512*512的灰度图
+test_chair_SAE: er=17.89%
+batchsize=5
+隐单元数=100
+
+DBN, 一样
+
+CNN, 一样
+
+dbn.sizes = [100 100 100];同样
+batchsize改为19，同样
+不正常
+
+dbn.sizes = [20 20 20 20];同样
+
+dbn.sizes = [20 20 20 20];
+nn.activation_function = 'tanh_opt';
+同样
+
+SDAE
+opts.numepochs =   2
+同样
+
+调试发现，预测结果全是2，所以...
+进一步跟进去调试发现：算的中间结果全是6，不知道为什么
+
+用最简单的数据测试，发现问题在于numepochs参数，可能是优化运行的次
+对图像增大到100次，结果还是同样
+问题不在这里
+
