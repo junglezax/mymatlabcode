@@ -79,7 +79,7 @@ assert(diff < 1e-9, 'Difference too large. Check your gradient computation again
 %  In this step, we load 100k patches sampled from the STL10 dataset and
 %  visualize them. Note that these patches have been scaled to [0,1]
 
-load stlSampledPatches.mat
+load ../../../data/stlSampledPatches.mat
 
 displayColorNetwork(patches(:, 1:100));
 
