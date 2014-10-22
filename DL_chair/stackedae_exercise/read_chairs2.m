@@ -1,10 +1,10 @@
-function [images, x, allLabels] = read_chairs2(patchSize)
-% read labeled furniture images
+function [images, img_gray, x, allLabels] = read_chairs2(scaledSize)
+% read labeled furniture 97(two unlabeled skipped) images
 %   and do PCA on them
 %   and divide them into train set and test set.
 
-	if ~exist('patchSize', 'var')
-		patchSize = 64;
+	if ~exist('scaledSize', 'var')
+		scaledSize = 64;
 	end
 
 	fns = {'1112-a', '1111', '1112-b', '1113-a', '1113-b', '1121', '1122', '1123', '1124', '1154', '1214', '1224', '1251', '1252', '1253', '1254', '1111-c', '1332', '1333', '1334', '2111', '2112', '2113', '2114', '2154', '2171', '2172', '2173', '2184-b', '2181', '2182', '2183', '2184-a', '2211', '2212', '2213', '2214', '2221', '2222', '2223', '2224', '2233-a', '2232', '2233-b', '2234', '2241', '2252', '2253', '2311', '2313', '2324', '2411', '2412', '2424', '2431', '2433', '3111', '3122', '3123', '3124', '3141', '3132', '3133', '1128', '3141-a', '3141-b', '3151', '3152', '3153', '3154', '3211', '3212', '3213', '3214', '3231', '3241', '3311', '3313', '3351', '3352', '3353', '3354', '4011', '4012', '4013', '4021-a', '4021-b', '4022-a', '4022-b', '4023-a', '4023-b', '4023-c', '4041', '4061', '4071'};
@@ -19,8 +19,9 @@ function [images, x, allLabels] = read_chairs2(patchSize)
 	end
 
 	m = length(fns);
-	images = {}; %zeros(patchSize, patchSize, m);
-	x = zeros(patchSize*patchSize, m);
+	images = {}; %zeros(scaledSize, scaledSize, m);
+	img_gray = zeros(scaledSize, scaledSize, m);
+	x = zeros(scaledSize*scaledSize, m);
 	for i = 1:m
 		fn = sprintf('../../../images/chair_labeled_97_png/%s.png', fns{i});
 		
@@ -30,9 +31,10 @@ function [images, x, allLabels] = read_chairs2(patchSize)
 		images{i} = im;
 		
 		a = rgb2gray(im);
-		b = imresize(a, [patchSize, patchSize]);
+		b = imresize(a, [scaledSize, scaledSize]);
 		
 		%figure; imshow(b);
+		img_gray(:, :, i) = b;
 		x(:, i) = b(:);
 	end
 	%close all
