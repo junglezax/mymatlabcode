@@ -12,19 +12,35 @@ hiddenSize = 25;     % number of hidden units
 sparsityParam = 0.01;   % desired average activation of the hidden units.
 lambda = 0.0001;     % weight decay parameter       
 beta = 3;            % weight of sparsity penalty term       
-useLinear = true; % whether use linear autoencoder
+numPatches = 10000;
+epsilon = 0.1;	       % epsilon for ZCA whitening
 
+useLinear = true; % whether use linear autoencoder
+useZCA = true;
 %%======================================================================
 % load image data
 [images, img_gray, x, allLabels] = read_chairs2(scaledSize);
 
 %%======================================================================
 %% sampleIMAGES
-patches = sampleIMAGES_chair(img_gray, patchsize);
+patches = sampleIMAGES_chair(img_gray, patchsize, numPatches);
 
 %display_network(x(:, 1:36));
 %display_network(patches(:,randi(size(patches,2),100,1)),8);
 %display_network(patches(:, 1:36));
+
+%%======================================================================
+% ZCA whitening
+if useZCA
+	meanPatch = mean(patches, 2);
+	patches = bsxfun(@minus, patches, meanPatch);
+
+	% Apply ZCA whitening
+	sigma = patches * patches' / numPatches;
+	[u, s, v] = svd(sigma);
+	ZCAWhite = u * diag(1 ./ sqrt(diag(s) + epsilon)) * u';
+	patches = ZCAWhite * patches;
+end
 
 %%======================================================================
 %% training your sparse autoencoder with minFunc (L-BFGS).
