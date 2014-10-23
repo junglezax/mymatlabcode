@@ -1,4 +1,4 @@
-function [images, img_gray, x, allLabels] = read_chairs2(scaledSize)
+function [images, img_gray, x, allLabels, fns] = read_chairs2(scaledSize)
 % read labeled furniture 97(two unlabeled skipped) images
 %   and do PCA on them
 %   and divide them into train set and test set.
@@ -23,7 +23,7 @@ function [images, img_gray, x, allLabels] = read_chairs2(scaledSize)
 	img_gray = zeros(scaledSize, scaledSize, m);
 	x = zeros(scaledSize*scaledSize, m);
 	for i = 1:m
-		fn = sprintf('../../../images/chair_labeled_97_png/%s.png', fns{i});
+		fn = sprintf('../../images/chair_labeled_97_png/%s.png', fns{i});
 		
 		fprintf('reading image %s\n', fn);
 		

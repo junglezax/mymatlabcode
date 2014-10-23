@@ -128,7 +128,7 @@ options.display = 'on';
 % Save the learned features and the preprocessing matrices for use in 
 % the later exercise on convolution and pooling
 fprintf('Saving learned features and preprocessing matrices...\n');                          
-save('STL10Features.mat', 'optTheta', 'ZCAWhite', 'meanPatch');
+save('../../../data/STL10Features.mat', 'optTheta', 'ZCAWhite', 'meanPatch');
 fprintf('Saved\n');
 
 %% STEP 2d: Visualize learned features

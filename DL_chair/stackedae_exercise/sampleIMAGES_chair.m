@@ -1,16 +1,15 @@
-function patches = sampleIMAGES(patchsize)
+function patches = sampleIMAGES_chair(IMAGES, patchsize, numpatches)
 % sampleIMAGES
 % Returns 10000 patches for training
-
-load ../../../data/IMAGES;    % load images from disk 
+% IMAGES r*c*m for m grayed images
 
 if ~exist('patchsize', 'var') || isempty(patchsize)
     patchsize = 8;
 end
 
-%patchsize = 8;  % we'll use 8x8 patches 
-
-numpatches = 10000;
+if ~exist('numpatches', 'var') || isempty(numpatches)
+    numpatches = 10000;
+end
 
 % Initialize patches with zeros.  Your code will fill in this matrix--one
 % column per patch, 10000 columns. 
@@ -32,13 +31,24 @@ patches = zeros(patchsize*patchsize, numpatches);
 imgN = size(IMAGES, 3);
 imgX = size(IMAGES, 2);
 imgY = size(IMAGES, 1);
-idx = randi(imgN, 1, numpatches);
-xidx = randi(imgX - patchsize + 1, 1, numpatches);
-yidx = randi(imgY - patchsize + 1, 1, numpatches);
-for i = 1:numpatches
-	sx = xidx(i);
-	sy = yidx(i);
-	t = IMAGES(sx : sx + patchsize - 1, sy : sy + patchsize - 1, idx(i));
+
+i = 0;
+epsilon = 0;
+while i < numpatches
+	idxi = randi(imgN, 1, 1);
+	sx = randi(imgX - patchsize + 1, 1, 1);
+	sy = randi(imgY - patchsize + 1, 1, 1);
+	
+	t = IMAGES(sx : sx + patchsize - 1, sy : sy + patchsize - 1, idxi);
+	
+	t1 = t(:);
+	if (std(t1) <= epsilon)
+		% skip pure color patches
+		continue;
+	end
+	
+	i = i + 1;
+	
 	%imagesc(t)
 	patches(:, i) = t(:);  % or reshape
 end
