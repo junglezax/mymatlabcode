@@ -167,7 +167,7 @@ for convPart = 1:(hiddenSize / stepSize)
     
     fprintf('Step %d: features %d to %d\n', convPart, featureStart, featureEnd);  
     Wt = W(featureStart:featureEnd, :);
-    bt = b(featureStart:featureEnd);    
+    bt = b(featureStart:featureEnd);
     
     fprintf('Convolving and pooling train images\n');
     convolvedFeaturesThis = cnnConvolve(patchDim, stepSize, ...
@@ -201,7 +201,7 @@ toc();
 %  10 minutes.
 
 % Add the path to your softmax solution, if necessary
-% addpath /path/to/solution/
+addpath ../softmax_exercise
 
 % Setup parameters for softmax
 softmaxLambda = 1e-4;
