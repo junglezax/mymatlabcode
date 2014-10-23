@@ -38,9 +38,9 @@ poolDim = 19;          % dimension of pooling region
 % Train the sparse autoencoder and fill the following variables with 
 % the optimal parameters:
 
-optTheta =  zeros(2*hiddenSize*visibleSize+hiddenSize+visibleSize, 1);
-ZCAWhite =  zeros(visibleSize, visibleSize);
-meanPatch = zeros(visibleSize, 1);
+%optTheta =  zeros(2*hiddenSize*visibleSize+hiddenSize+visibleSize, 1);
+%ZCAWhite =  zeros(visibleSize, visibleSize);
+%meanPatch = zeros(visibleSize, 1);
 
 load ../../../data/STL10Features.mat
 
@@ -79,14 +79,14 @@ convolvedFeatures = cnnConvolve(patchDim, hiddenSize, convImages, W, b, ZCAWhite
 %  activations from the sparse autoencoder
 
 % For 1000 random points
-for i = 1:1000    
+for i = 1:1000   
     featureNum = randi([1, hiddenSize]);
     imageNum = randi([1, 8]);
     imageRow = randi([1, imageDim - patchDim + 1]);
     imageCol = randi([1, imageDim - patchDim + 1]);    
    
     patch = convImages(imageRow:imageRow + patchDim - 1, imageCol:imageCol + patchDim - 1, :, imageNum);
-    patch = patch(:);            
+    patch = patch(:);
     patch = patch - meanPatch;
     patch = ZCAWhite * patch;
     

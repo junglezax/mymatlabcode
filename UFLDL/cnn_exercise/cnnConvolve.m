@@ -51,7 +51,7 @@ for imageNum = 1:numImages
   for featureNum = 1:numFeatures
 
     % convolution of image with feature matrix for each channel
-    %convolvedImage = zeros(imageDim - patchDim + 1, imageDim - patchDim + 1);
+    convolvedImage = zeros(imageDim - patchDim + 1, imageDim - patchDim + 1);
     for channel = 1:3
 
       % Obtain the feature (patchDim x patchDim) needed during the convolution
@@ -65,12 +65,13 @@ for imageNum = 1:numImages
       
       % Obtain the image
       im = squeeze(images(:, :, channel, imageNum));
-
+	  %im = im(:) * ZCAWhite(1:patchDim * patchDim, :);
+	  
       % Convolve "feature" with "im", adding the result to convolvedImage
       % be sure to do a 'valid' convolution
       % ---- YOUR CODE HERE ----
 
-      convolvedImage0 = conv2(im, feature, 'valid');
+      convolvedImage = convolvedImage + conv2(im, feature, 'valid');
 
       % ------------------------
 
@@ -80,7 +81,7 @@ for imageNum = 1:numImages
     % Then, apply the sigmoid function to get the hidden activation
     % ---- YOUR CODE HERE ----
 
-    convolvedImage = sigmoid(convolvedImage0 + b1(featureNum));
+    convolvedImage = sigmoid(convolvedImage + b1(featureNum));
     
     % ------------------------
     
