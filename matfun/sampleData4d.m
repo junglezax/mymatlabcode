@@ -1,6 +1,7 @@
-function [trainData, trainLabels, testData, testLabels, trainSet, testSet] = sampleData(x, allLabels, trainSet, testSet);
+function [trainData, trainLabels, testData, testLabels, trainSet, testSet] = sampleData4d(x, allLabels, trainSet, testSet);
 	% sample
-	m = size(x, 2);
+	% x: 4-d matrix, for example a matrix of m images, r*c*3*m
+	m = size(x, 4);
 	
 	labeledSet   = 1:m;
 
@@ -10,10 +11,10 @@ function [trainData, trainLabels, testData, testLabels, trainSet, testSet] = sam
 		testSet = setdiff(labeledSet, trainSet);
 	end
 
-	trainData   = x(:, trainSet);
+	trainData   = x(:, :, :, trainSet);
 	trainLabels = allLabels(trainSet)';
 
-	testData   = x(:, testSet);
+	testData   = x(:, :, :, testSet);
 	testLabels = allLabels(testSet)';
 
 	% Output Some Statistics
