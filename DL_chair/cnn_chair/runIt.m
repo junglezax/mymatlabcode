@@ -21,7 +21,7 @@ epsilon = 0.1;	       % epsilon for ZCA whitening
 [images, allLabels, x, img_resized] = read_97chairs(scaledSize, false);
 
 % sample train images to train patches for train AE
-patches = sampleIMAGES_color(img_resized, patchsize, numpatches);
+patches = sampleIMAGES_color(img_resized, patchDim, numpatches);
 
 displayColorNetwork(x(:, 1:9));
 displayColorNetwork(patches(:, 1:81));

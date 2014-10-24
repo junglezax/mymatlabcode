@@ -34,7 +34,7 @@ function [images, allLabels, x, img_resized] = read_97chairs(scaledSize, toGray)
 	end
 	
 	for i = 1:m
-		fn = sprintf('d:/mine/xx/images/chair_labeled_97_png/%s.png', fns{i});
+		fn = sprintf('../../../images/chair_labeled_97_png/%s.png', fns{i});
 		
 		fprintf('reading image %s\n', fn);
 		
