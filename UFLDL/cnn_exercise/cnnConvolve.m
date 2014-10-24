@@ -45,7 +45,9 @@ W1 = W * ZCAWhite;
 b1 = b - W1 * meanPatch;
 
 % --------------------------------------------------------
-
+imageDim - patchDim + 1
+numFeatures
+numImages
 convolvedFeatures = zeros(numFeatures, numImages, imageDim - patchDim + 1, imageDim - patchDim + 1);
 for imageNum = 1:numImages
   for featureNum = 1:numFeatures
