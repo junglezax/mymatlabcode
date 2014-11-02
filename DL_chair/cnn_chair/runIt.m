@@ -28,7 +28,7 @@ numClasses = 12;
 oldPwd = pwd;
 cd ../
 load_it
-cd oldPwd
+cd(oldPwd)
 
 % sample train images to train patches for train AE
 patches = sampleIMAGES_color(img_resized, patchDim, numpatches);

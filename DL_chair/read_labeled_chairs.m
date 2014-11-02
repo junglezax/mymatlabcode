@@ -45,6 +45,9 @@ function [images, img_resized, x, labels, fns] = read_labeled_chairs(imgDir, sca
 	fprintf('reading images from %s\n', imgDir);
 	for i = 1:m
 		fn = [imgDir dirs(i).name];
+		if strcmp(getExt(dirs(i).name), 'xls')
+			continue;
+		end
 		
 		if verbose
 			fprintf('reading image %s\n', fn);
