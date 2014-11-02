@@ -1,4 +1,4 @@
-function [images, img_resized, x, labels, fns] = read_labeled_chairs(imgDir, scaledSize, toGray, labelLevel, verbose)
+function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir, scaledSize, toGray, labelLevel, verbose)
 % read labeled furniture images
 % example: 
 %  [images, img_resized, x, labels, fns] = read_labeled_chairs('../../images/chair_labeled_97_png/', 64, true, 2);
@@ -51,6 +51,8 @@ function [images, img_resized, x, labels, fns] = read_labeled_chairs(imgDir, sca
 		
 		if verbose
 			fprintf('reading image %s\n', fn);
+		else
+			fprintf('.');
 		end
 		
 		try
@@ -90,7 +92,7 @@ function [images, img_resized, x, labels, fns] = read_labeled_chairs(imgDir, sca
 		fns{idx} = fn;
 	end
 	
-	toDel = m-numel(bad)+1:m;
+	toDel = idx+1:m;
 	labels(toDel) = [];
 	x(:, toDel) = [];
 	

@@ -1,6 +1,6 @@
 function patches = sampleIMAGES_color(IMAGES, patchsize, numpatches)
 % sampleIMAGES
-% IMAGES row*col*3*numImages, color images
+% IMAGES cell of 1*numImages, each of row*col*3 color images
 % Returns numpatches patches for training
 % patches r*c*3*numpatches for numpatches color images
 
@@ -16,9 +16,9 @@ end
 % column per patch, 10000 columns. 
 patches = zeros(patchsize*patchsize*3, numpatches);
 
-imgN = size(IMAGES, 4);
-imgX = size(IMAGES, 2);
-imgY = size(IMAGES, 1);
+imgN = numel(IMAGES);
+imgX = size(IMAGES{1}, 2);
+imgY = size(IMAGES{1}, 1);
 
 i = 0;
 epsilon = 0;
@@ -27,10 +27,10 @@ while i < numpatches
 	sx = randi(imgX - patchsize + 1, 1, 1);
 	sy = randi(imgY - patchsize + 1, 1, 1);
 	
-	t = IMAGES(sx : sx + patchsize - 1, sy : sy + patchsize - 1, :, idxi);
+	t = IMAGES{idxi}(sx : sx + patchsize - 1, sy : sy + patchsize - 1, :);
 	
 	t1 = t(:);
-	if (std(t1) <= epsilon)
+	if (std(double(t1)) <= epsilon)
 		% skip pure color patches
 		continue;
 	end
