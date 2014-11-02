@@ -59,25 +59,25 @@ function [images, img_resized, x, labels, fns] = read_labeled_chairs(imgDir, sca
 		end
 				
 		dim = numel(size(im));
-		if dim == 3
-			a = rgb2gray(im);
-        elseif dim == 2
-			a = im;
-		else
-			disp(['bad image ' fn]);
+		
+		a = im;
+		
+		if dim ~= 3 & dim ~= 2
+			disp(['bad image size ' fn]);
+			disp(size(im));
 			bad = [bad fn];
 			continue;
-		end;
+		elseif toGray & dim == 3
+			a = rgb2gray(im);
+		elseif ~toGray & dim == 2
+			a = gray2rgb(im);
+		end
 		
 		idx = idx + 1;
 
 		images{idx} = im;
 		
-		if toGray
-			b = imresize(a, [scaledSize, scaledSize]);
-		else
-			b = imresize(a, [scaledSize, scaledSize, 3]);
-		end
+		b = imresize(a, [scaledSize, scaledSize]);
 		img_resized{idx} = b;
 		
 		labelCode = dirs(i).name(1:4);
