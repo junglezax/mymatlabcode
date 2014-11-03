@@ -135,22 +135,33 @@ addpath ../../UFLDL/softmax_exercise
 softmaxLambda = 1e-4;
 
 % Reshape the pooledFeatures to form an input vector for softmax
-softmaxX = permute(pooledFeaturesTrain, [1 3 4 2]);
-softmaxX = reshape(softmaxX, numel(pooledFeaturesTrain) / numTrainImages,...
+softmaxXtrain = permute(pooledFeaturesTrain, [1 3 4 2]);
+softmaxXtrain = reshape(softmaxXtrain, numel(pooledFeaturesTrain) / numTrainImages,...
     numTrainImages);
-softmaxY = trainLabels;
+softmaxYtrain = trainLabels;
 
 options = struct;
 options.maxIter = 200;
 softmaxModel = softmaxTrain(numel(pooledFeaturesTrain) / numTrainImages,...
-    numClasses, softmaxLambda, softmaxX, softmaxY, options);
+    numClasses, softmaxLambda, softmaxXtrain, softmaxYtrain, options);
 
 % test classifier
-softmaxX = permute(pooledFeaturesTest, [1 3 4 2]);
-softmaxX = reshape(softmaxX, numel(pooledFeaturesTest) / numTestImages, numTestImages);
-softmaxY = testLabels;
+softmaxXtest = permute(pooledFeaturesTest, [1 3 4 2]);
+softmaxXtest = reshape(softmaxXtest, numel(pooledFeaturesTest) / numTestImages, numTestImages);
+softmaxYtest = testLabels;
 
 [pred] = softmaxPredict(softmaxModel, softmaxX);
 acc = (pred(:) == softmaxY(:));
 acc = sum(acc) / size(acc, 1);
 fprintf('Accuracy: %2.3f%%\n', acc * 100);
+
+% test on all examples
+softmaxXall = [softmaxXtrain softmaxXtest];
+softmaxYall = [trainLabels; testLabels];
+
+[pred] = softmaxPredict(softmaxModel, softmaxXall);
+acc = (pred(:) == softmaxYall(:));
+acc = sum(acc) / size(acc, 1);
+fprintf('Accuracy on all: %2.3f%%\n', acc * 100);
+
+
