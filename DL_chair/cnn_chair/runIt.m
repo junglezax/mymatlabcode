@@ -63,7 +63,7 @@ tic
 toc
 
 fprintf('Saving\n');
-save('../../../data/chair97LinearFeatures.mat', 'optTheta', 'ZCAWhite', 'meanPatch', 'patches', 'img_resized');
+save('../../../data/chair97LinearFeatures.mat', 'optTheta', 'ZCAWhite', 'meanPatch');
 fprintf('Saved\n');
 
 %load ../../../data/chair97LinearFeatures.mat
