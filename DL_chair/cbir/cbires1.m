@@ -22,7 +22,7 @@ function varargout = cbires(varargin)
 
 	% Edit the above text to modify the response to help cbires
 
-	% Last Modified by GUIDE v2.5 03-Nov-2014 23:43:56
+	% Last Modified by GUIDE v2.5 23-May-2013 22:01:15
 
 	% Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -425,4 +425,3 @@ function btn_LoadDataset_Callback(hObject, eventdata, handles)
 		return;
 	end
 end
-
