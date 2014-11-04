@@ -150,8 +150,8 @@ softmaxXtest = permute(pooledFeaturesTest, [1 3 4 2]);
 softmaxXtest = reshape(softmaxXtest, numel(pooledFeaturesTest) / numTestImages, numTestImages);
 softmaxYtest = testLabels;
 
-[pred] = softmaxPredict(softmaxModel, softmaxX);
-acc = (pred(:) == softmaxY(:));
+[pred] = softmaxPredict(softmaxModel, softmaxXtest);
+acc = (pred(:) == softmaxYtest(:));
 acc = sum(acc) / size(acc, 1);
 fprintf('Accuracy: %2.3f%%\n', acc * 100);
 
