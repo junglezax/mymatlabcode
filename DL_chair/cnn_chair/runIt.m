@@ -1,15 +1,18 @@
+function [accTest, predTest, accAll, predAll, paramStru, outStru] = runIt(dataFrom, dataStru)
+% dataFrom: read, load, none
+
+if ~exist('dataFrom', 'var')
+	dataFrom = 'read';
+end
+
 % parameters
-numpatches = 10000;
 scaledSize = 487;
-imageDim = scaledSize;
 patchDim = 8;
 
 imageChannels = 3;     % number of channels (rgb, so 3)
 
 numPatches = 100000;   % number of patches
 
-visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
-outputSize  = visibleSize;   % number of output units
 hiddenSize  = 400;           % number of hidden units 
 
 sparsityParam = 0.035; % desired average activation of the hidden units.
@@ -22,16 +25,47 @@ poolDim = 48;          % dimension of pooling region % imageDim - patchDim + 1 =
 
 numClasses = 12;
 
+imageDim = scaledSize;
+visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
+outputSize  = visibleSize;   % number of output units
+
+paramStru.numPatches = numPatches;
+paramStru.scaledSize = scaledSize;
+paramStru.patchDim = patchDim;
+paramStru.imageChannels = imageChannels;
+paramStru.hiddenSize = hiddenSize;
+paramStru.sparsityParam = sparsityParam;
+paramStru.lambda = lambda;
+paramStru.beta = beta;
+paramStru.poolDim = poolDim;
+paramStru.epsilon = epsilon;
+paramStru.numClasses = numClasses;
+
 % load images
 %[images, labels, x, img_resized] = read_97chairs(scaledSize, false);
 
 oldPwd = pwd;
 cd ../
-load_it
+
+if ~strcmp(dataFrom, 'none')
+	dataStru = load_it(dataFrom, scaledSize);
+end
+
+images = dataStru.images;
+img_resized = dataStru.img_resized;
+x = dataStru.x;
+labels = dataStru.labels;
+fns = dataStru.fns;
+bad = dataStru.bad;
+badCnt = dataStru.goodCnt;
+imgDirs = dataStru.imgDirs;
+
 cd(oldPwd)
 
 % sample train images to train patches for train AE
-patches = sampleIMAGES_color(img_resized, patchDim, numpatches);
+disp('sampling patches from images...');
+patches = sampleIMAGES_color(img_resized, patchDim, numPatches);
+disp('sampling patches from images finished');
 
 %displayColorNetwork(x(:, 1:9));
 %displayColorNetwork(patches(:, 1:81));
@@ -54,16 +88,21 @@ options.Method = 'lbfgs';
 options.maxIter = 400;
 options.display = 'on';
 
-tic
+disp('training linear encoder...');
 [optTheta, cost] = minFunc( @(p) sparseAutoencoderLinearCost(p, ...
                                    visibleSize, hiddenSize, ...
                                    lambda, sparsityParam, ...
                                    beta, patches), ...
                               theta, options);
-toc
+disp('training linear encoder finished');
+
+outStru = struct;
+outStru.optTheta = optTheta;
+outStru.ZCAWhite = ZCAWhite;
+outStru.meanPatch = meanPatch;
 
 fprintf('Saving\n');
-save('../../../data/chair97LinearFeatures.mat', 'optTheta', 'ZCAWhite', 'meanPatch');
+save('../../../data/chairLinearFeatures.mat', 'optTheta', 'ZCAWhite', 'meanPatch');
 fprintf('Saved\n');
 
 %load ../../../data/chair97LinearFeatures.mat
@@ -98,6 +137,8 @@ pooledFeaturesTest = zeros(hiddenSize, numTestImages, ...
 
 tic();
 
+disp('convolving & pooling for features...');
+
 for convPart = 1:(hiddenSize / stepSize)
     
     featureStart = (convPart - 1) * stepSize + 1;
@@ -125,8 +166,13 @@ for convPart = 1:(hiddenSize / stepSize)
     clear convolvedFeaturesThis pooledFeaturesThis;
 end
 
-save('../../../data/cnnPooledFeatures97chairs.mat', 'pooledFeaturesTrain', 'pooledFeaturesTest');
-toc();
+disp('convolving & pooling for features finished');
+
+outStru.pooledFeaturesTrain = pooledFeaturesTrain;
+outStru.pooledFeaturesTest = pooledFeaturesTest;
+
+disp('saving')
+save('../../../data/cnnPooledFeaturesChairs.mat', 'pooledFeaturesTrain', 'pooledFeaturesTest');
 
 % train classifier using pooled features
 addpath ../../UFLDL/softmax_exercise
@@ -142,26 +188,33 @@ softmaxYtrain = trainLabels;
 
 options = struct;
 options.maxIter = 200;
+
+
+disp('training softmax...');
 softmaxModel = softmaxTrain(numel(pooledFeaturesTrain) / numTrainImages,...
     numClasses, softmaxLambda, softmaxXtrain, softmaxYtrain, options);
+disp('training softmax finished');
 
 % test classifier
+disp('predicting for test data')
 softmaxXtest = permute(pooledFeaturesTest, [1 3 4 2]);
 softmaxXtest = reshape(softmaxXtest, numel(pooledFeaturesTest) / numTestImages, numTestImages);
 softmaxYtest = testLabels;
 
-[pred] = softmaxPredict(softmaxModel, softmaxXtest);
-acc = (pred(:) == softmaxYtest(:));
-acc = sum(acc) / size(acc, 1);
-fprintf('Accuracy: %2.3f%%\n', acc * 100);
+[predTest] = softmaxPredict(softmaxModel, softmaxXtest);
+accTest = (predTest(:) == softmaxYtest(:));
+accTest = sum(accTest) / size(acc, 1);
+fprintf('Accuracy: %2.3f%%\n', accTest * 100);
 
 % test on all examples
+disp('predicting for all data')
 softmaxXall = [softmaxXtrain softmaxXtest];
 softmaxYall = [trainLabels; testLabels];
 
-[pred] = softmaxPredict(softmaxModel, softmaxXall);
-acc = (pred(:) == softmaxYall(:));
-acc = sum(acc) / size(acc, 1);
-fprintf('Accuracy on all: %2.3f%%\n', acc * 100);
+[predAll] = softmaxPredict(softmaxModel, softmaxXall);
+accAll = (predAll(:) == softmaxYall(:));
+accAll = sum(accAll) / size(accAll, 1);
+fprintf('Accuracy on all: %2.3f%%\n', accAll * 100);
 
 
+end

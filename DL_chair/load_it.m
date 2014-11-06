@@ -1,25 +1,64 @@
-%scaledSize = 128;
-imgBaseDir = '../../images/';
-imgDirs = {'chair_labeled_97_png', 'yes', 'msmp2', 'msmp3', 'msmp4', 'msmp5'};
-images = {};
-img_resized = {};
-x = [];
-labels = [];
-fns = {};
-bad = {};
+function dataStru = load_it(dataFrom, scaledSize)
 
-for i = 1:numel(imgDirs)
-	[images1, img_resized1, x1, labels1, fns1, bad1] = read_labeled_chairs([imgBaseDir imgDirs{i} '/'], scaledSize, false, 2, false);
-	[images, img_resized, x, labels, fns, bad] = merge_chairs_data(images, img_resized, x, labels, fns, bad, images1, img_resized1, x1, labels1, fns1, bad1);
+if ~exist('scaledSize', 'var')
+	scaledSize = 128;
+end
+
+if ~exist('dataFrom', 'var')
+	dataFrom = 'read';
+end
+
+saveName = sprintf('../../data/chairs_labeled_%dx%d.mat', scaledSize);
+
+if strcmp(dataFrom, 'read')
+	imgBaseDir = '../../images/';
+	imgDirs = {'chair_labeled_97_png', 'yes', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6'};
+	dirCnt = numel(imgDirs);
+
+	images = {};
+	img_resized = {};
+	x = [];
+	labels = [];
+	fns = {};
+	bad = {};
+	goodCnt = zeros(1, dirCnt);
+	badCnt = zeros(1, dirCnt);
+
+	for i = 1:dirCnt
+		[images1, img_resized1, x1, labels1, fns1, bad1] = read_labeled_chairs([imgBaseDir imgDirs{i} '/'], scaledSize, false, 2, false);
+		goodCnt(i) = numel(fns1);
+		badCnt(i) = numel(bad1);
+		[images, img_resized, x, labels, fns, bad] = merge_chairs_data(images, img_resized, x, labels, fns, bad, images1, img_resized1, x1, labels1, fns1, bad1);
+	end
+
+dataStru = struct;
+dataStru.images = images;
+dataStru.img_resized = img_resized;
+dataStru.x = x;
+dataStru.labels = labels;
+dataStru.fns = fns;
+dataStru.bad = bad;
+dataStru.goodCnt = badCnt;
+dataStru.imgDirs = imgDirs;
+
+	disp('saving...')
+	save(saveName, 'dataStru', '-v7.3');
+	disp('done')
+
+	fprintf('read: %d\n', numel(fns));
+	fprintf('bad : %d\n', numel(bad));
+
+elseif strcmp(dataFrom, 'load')
+
+	disp('loading...')
+	load(saveName);
+	disp('done');
+
+%else none donothing
+
 end
 
 %whos('images')
 %whos('x')
-fprintf('read: %d\n', numel(fns));
-fprintf('bad : %d\n', numel(bad));
 
-disp('saving...')
-save -v7.3 ../../data/chairs_data_5sets.mat images img_resized x labels fns
-disp('done')
-
-% load('../../data/chairs_data_5sets.mat')
+end
