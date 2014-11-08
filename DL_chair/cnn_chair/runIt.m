@@ -203,7 +203,7 @@ softmaxYtest = testLabels;
 
 [predTest] = softmaxPredict(softmaxModel, softmaxXtest);
 accTest = (predTest(:) == softmaxYtest(:));
-accTest = sum(accTest) / size(acc, 1);
+accTest = sum(accTest) / size(accTest, 1);
 fprintf('Accuracy: %2.3f%%\n', accTest * 100);
 
 % test on all examples
