@@ -8,7 +8,7 @@ if ~exist('dataFrom', 'var')
 	dataFrom = 'read';
 end
 
-saveName = sprintf('../../data/chairs_labeled_%dx%d.mat', scaledSize);
+saveName = sprintf('../../data/chairs_labeled_%dx%d.mat', scaledSize, scaledSize);
 
 if strcmp(dataFrom, 'read')
 	imgBaseDir = '../../images/';

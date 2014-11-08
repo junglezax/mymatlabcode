@@ -1,5 +1,8 @@
-function [accTest, predTest, accAll, predAll, paramStru, outStru] = runIt(dataFrom, dataStru)
+function [accTest, predTest, accAll, predAll, paramStru, outStru, dataStru] = runIt(dataFrom, dataStru)
 % dataFrom: read, load, none
+% example: [accTest, predTest, accAll, predAll, paramStru, outStru, dataStru] = runIt();
+%          [accTest, predTest, accAll, predAll, paramStru, outStru, dataStru] = runIt('load');
+%          [accTest, predTest, accAll, predAll, paramStru, outStru] = runIt('none', dataStru);
 
 if ~exist('dataFrom', 'var')
 	dataFrom = 'read';
@@ -11,7 +14,7 @@ patchDim = 8;
 
 imageChannels = 3;     % number of channels (rgb, so 3)
 
-numPatches = 100000;   % number of patches
+numPatches = 200000;   % number of patches
 
 hiddenSize  = 400;           % number of hidden units 
 
