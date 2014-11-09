@@ -138,7 +138,7 @@ pooledFeaturesTest = zeros(hiddenSize, numTestImages, ...
     floor((imageDim - patchDim + 1) / poolDim), ...
     floor((imageDim - patchDim + 1) / poolDim) );
 
-tic();
+%tic();
 
 disp('convolving & pooling for features...');
 
