@@ -181,7 +181,7 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 		numOfReturnedImgs = handles.numOfReturnedImages;
 	end
 
-	queryImage = preprocessImage1(handles.queryImage, handles.options.);
+	queryImage = preprocessImage1(handles.queryImage, handles.options.imageDim);
 	% extract query image features
 	queryImageFeature = cnnComputeFeature(handles.model, {queryImage}, handles.options);
 
@@ -411,7 +411,7 @@ function btnTrainClassifier_Callback(hObject, eventdata, handles)
 	softmaxYTrain = trainLabels;
 
 	options = struct;
-	options.maxIter = 20;%temply
+	options.maxIter = handles.options.softmaxIter;
 
 	disp('training softmax...');
 	softmaxModel = softmaxTrain(numel(pooledFeaturesTrain) / numTrainImages,...
@@ -487,7 +487,7 @@ function btnComputeFeatures_Callback(hObject, eventdata, handles)
 		return;
 	end
 	
-    handles.unlabeledData = load_it(handles.unlabeledDir, handles.options.imageDim, false);
+    handles.unlabeledData = load_it(handles.unlabeledDir, handles.options, false);
 	
 	%images = handles.unlabeledData.images;
 	img_resized = handles.unlabeledData.img_resized;
@@ -519,7 +519,7 @@ function btnComputeFeatures_Callback(hObject, eventdata, handles)
 
 	options = struct;
 	options.Method = 'lbfgs'; 
-	options.maxIter = 40;%temply
+	options.maxIter = handles.options.maxIter;
 	options.display = 'on';
 
 	disp('training linear encoder...');
@@ -544,17 +544,19 @@ end
 
 function options = getParam()
 	options = struct;
+	options.imageDim = 67;
 	options.patchDim = 8;
+	options.poolDim = 10;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 	options.imageChannels = 3;     % number of channels (rgb, so 3)
-	options.numPatches = 100;   % number of patches %temply
+	options.numPatches = 100;   % number of patches
+	options.maxIter = 40;
+	options.softmaxIter = 20;
 	options.hiddenSize  = 400;           % number of hidden units 
 	options.sparsityParam = 0.035; % desired average activation of the hidden units.
 	options.lambda = 3e-3;         % weight decay parameter       
 	options.beta = 5;              % weight of sparsity penalty term       
 	options.epsilon = 0.1;	       % epsilon for ZCA whitening
-	options.poolDim = 48;          % dimension of pooling region % imageDim - patchDim + 1 = 57 
 	options.numClasses = 12;
-	options.imageDim = 487;
 	options.softmaxLambda = 1e-4;
 end
 
