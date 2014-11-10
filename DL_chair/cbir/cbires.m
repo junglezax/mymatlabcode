@@ -44,6 +44,26 @@ function varargout = cbires(varargin)
 end
 % End initialization code - DO NOT EDIT
 
+function options = getParam()
+	options = struct;
+	options.imageDim = 67;
+	options.patchDim = 8;
+	options.poolDim = 10;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
+	options.imageChannels = 3;     % number of channels (rgb, so 3)
+	options.numPatches = 100;   % number of patches
+	options.maxIter = 40;
+	options.softmaxIter = 20;
+	options.hiddenSize  = 30;           % number of hidden units
+	options.stepSize = 10;			% hiddenSize / stepSize = int
+	options.sparsityParam = 0.035; % desired average activation of the hidden units.
+	options.lambda = 3e-3;         % weight decay parameter       
+	options.beta = 5;              % weight of sparsity penalty term       
+	options.epsilon = 0.1;	       % epsilon for ZCA whitening
+	options.numClasses = 12;
+	options.softmaxLambda = 1e-4;
+	options.imgBaseDir = '';
+end
+
 % --- Executes just before cbires is made visible.
 function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
 	% This function has no output args, see OutputFcn.
@@ -56,6 +76,9 @@ function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
 	handles.modelput = hObject;
 
 	handles.options = getParam();
+	
+	handles.unlabeledDir = '../../../images/chair_labeled_97_png';
+	handles.retrievalDir = '../../../images/chair_labeled_97_png';
 	
 	% Update handles structure
 	guidata(hObject, handles);
@@ -183,15 +206,18 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 
 	queryImage = preprocessImage1(handles.queryImage, handles.options.imageDim);
 	% extract query image features
-	queryImageFeature = cnnComputeFeature(handles.model, {queryImage}, handles.options);
+	imgData = cell2mat4d({queryImage});
+	queryImageFeature = cnnComputeFeature(handles.model, imgData, handles.options);
 
 	useClassifier = false;
 	if useClassifier
 		% do classify
 		% classification
-		[pred] = softmaxPredict(handles.imageDataset.softmaxModel, queryImageFeature);
+		[pred] = softmaxPredict(handles.model.softmaxModel, queryImageFeature);
 		
-		cls_idxs = find(handles.imageDataset.chairLabels2 == pred);
+		cls_idxs = find(handles.labels == pred);
+    else
+        cls_idxs = 1:size(handles.featureSet, 2);
 	end
 
 	handles.queryImageFeature = queryImageFeature;
@@ -540,24 +566,6 @@ function btnComputeFeatures_Callback(hObject, eventdata, handles)
 	fprintf('Saving\n');
 	save('../../../data/chairLinearFeatures.mat', 'optTheta', 'ZCAWhite', 'meanPatch');
 	fprintf('Saved\n');
-end
-
-function options = getParam()
-	options = struct;
-	options.imageDim = 67;
-	options.patchDim = 8;
-	options.poolDim = 10;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
-	options.imageChannels = 3;     % number of channels (rgb, so 3)
-	options.numPatches = 100;   % number of patches
-	options.maxIter = 40;
-	options.softmaxIter = 20;
-	options.hiddenSize  = 400;           % number of hidden units 
-	options.sparsityParam = 0.035; % desired average activation of the hidden units.
-	options.lambda = 3e-3;         % weight decay parameter       
-	options.beta = 5;              % weight of sparsity penalty term       
-	options.epsilon = 0.1;	       % epsilon for ZCA whitening
-	options.numClasses = 12;
-	options.softmaxLambda = 1e-4;
 end
 
 % --- Executes on button press in btnSaveModel.

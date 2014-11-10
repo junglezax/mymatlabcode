@@ -25,7 +25,7 @@ if ~isfield(options, 'dataDir')
 end
 
 if ~isfield(options, 'imgBaseDir')
-	options.imgBaseDir = '../../images';
+	options.imgBaseDir = '../../images/';
 end
 
 if strcmp(class(imgDirs), 'char')
@@ -53,7 +53,7 @@ if strcmp(options.dataFrom, 'read')
 		end
 		
 		if ~isAbsPath(d)
-			d = [options.imgBaseDir '/' d];
+			d = [options.imgBaseDir d];
 		end
 		
 		[images1, img_resized1, x1, labels1, fns1, bad1] = read_labeled_chairs(d, options.imageDim, false, 2, false);

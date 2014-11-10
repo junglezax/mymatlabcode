@@ -2,7 +2,7 @@ function x = cnnComputeFeature(model, images, options)
 	numImages = size(images, 4);
 	
 	% do convolution and pooling to and test images, got pooled features
-	stepSize = 50;
+	stepSize = options.stepSize;
 	assert(mod(options.hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
 
 	t = floor((options.imageDim - options.patchDim + 1) / options.poolDim);
