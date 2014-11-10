@@ -22,7 +22,7 @@ function varargout = cbires(varargin)
 
 	% Edit the above text to modify the response to help cbires
 
-	% Last Modified by GUIDE v2.5 09-Nov-2014 16:42:50
+	% Last Modified by GUIDE v2.5 09-Nov-2014 17:20:46
 
 	% Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -53,15 +53,16 @@ function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
 	% varargin   command line arguments to cbires (see VARARGIN)
 
 	% Choose default command line output for cbires
-	handles.output = hObject;
+	handles.modelput = hObject;
 
+	handles.options = getParam();
+	
 	% Update handles structure
 	guidata(hObject, handles);
 
 	% UIWAIT makes cbires wait for user response (see UIRESUME)
 	% uiwait(handles.figure1);
 	
-	setParam(hObject, handles);
 end
 
 % --- Outputs from this function are returned to the command line.
@@ -72,16 +73,12 @@ function varargout = cbires_OutputFcn(hObject, eventdata, handles)
 	% handles    structure with handles and user data (see GUIDATA)
 
 	% Get default command line output from handles structure
-	varargout{1} = handles.output;
+	varargout{1} = handles.modelput;
 end
 
 %% ==========================================================================
 % --- Executes on button press in btn_BrowseImage.
 function btn_BrowseImage_Callback(hObject, eventdata, handles)
-	% hObject    handle to btn_BrowseImage (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    structure with handles and user data (see GUIDATA)
-
 	[query_fname, query_pathname] = uigetfile('*.jpg; *.png; *.bmp', 'Select query image');
 
 	if (query_fname ~= 0)
@@ -99,7 +96,7 @@ function btn_BrowseImage_Callback(hObject, eventdata, handles)
 			
 			% Clear workspace
 			clear('query_fname', 'query_pathname', 'query_fullpath', 'pathstr', ...
-				'name', 'ext', 'queryImage', 'queryImageFeature');
+				'name', 'ext', 'queryImage');
 		else
 			errordlg('You have not selected the correct file type');
 		end
@@ -111,10 +108,6 @@ end
 %% ==========================================================================
 % --- Executes on selection change in popupmenu_DistanceFunctions.
 function popupmenu_DistanceFunctions_Callback(hObject, eventdata, handles)
-	% hObject    handle to popupmenu_DistanceFunctions (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    structure with handles and user data (see GUIDATA)
-
 	% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu_DistanceFunctions contents as cell array
 	%        contents{get(hObject,'Value')} returns selected item from popupmenu_DistanceFunctions
 
@@ -125,10 +118,6 @@ end
 %% ==========================================================================
 % --- Executes during object creation, after setting all properties.
 function popupmenu_DistanceFunctions_CreateFcn(hObject, eventdata, handles)
-	% hObject    handle to popupmenu_DistanceFunctions (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    empty - handles not created until after all CreateFcns called
-
 	% Hint: popupmenu controls usually have a white background on Windows.
 	%       See ISPC and COMPUTER.
 	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -139,10 +128,6 @@ end
 %% ==========================================================================
 % --- Executes on selection change in popupmenu_NumOfReturnedImages.
 function popupmenu_NumOfReturnedImages_Callback(hObject, eventdata, handles)
-	% hObject    handle to popupmenu_NumOfReturnedImages (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    structure with handles and user data (see GUIDATA)
-
 	% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu_NumOfReturnedImages contents as cell array
 	%        contents{get(hObject,'Value')} returns selected item from popupmenu_NumOfReturnedImages
 
@@ -167,10 +152,6 @@ end
 %% ==========================================================================
 % --- Executes on button press in btnExecuteQuery.
 function btnExecuteQuery_Callback(hObject, eventdata, handles)
-	% hObject    handle to btnExecuteQuery (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    structure with handles and user data (see GUIDATA)
-
 	% check for image query
 	if (~isfield(handles, 'queryImage'))
 		errordlg('Please select an image first, then choose your similarity metric and num of returned images!');
@@ -178,7 +159,7 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	end
 
 	% check for dataset existence
-	if (~isfield(handles, 'imageDataset'))
+	if (~isfield(handles, 'featureSet'))
 		errordlg('Please load a dataset first. If you dont have one then you should consider creating one!');
 		return;
 	end
@@ -200,28 +181,32 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 		numOfReturnedImgs = handles.numOfReturnedImages;
 	end
 
+	queryImage = preprocessImage1(handles.queryImage, handles.options.);
 	% extract query image features
-	queryImage = preprocessImage(handles.queryImage, handles.imageDataset.u, handles.imageDataset.k, handles.imageDataset.patchSize);
-	queryImageFeature = extractFeatures(handles.imageDataset.opttheta, handles.imageDataset.hiddenSize,...
-										handles.imageDataset.inputSize, queryImage, handles.imageDataset.useAE);
-										
-	% classification
-	[pred] = softmaxPredict(handles.imageDataset.softmaxModel, queryImageFeature);
-	
-	cls_idxs = find(handles.imageDataset.chairLabels2 == pred);
+	queryImageFeature = cnnComputeFeature(handles.model, {queryImage}, handles.options);
+
+	useClassifier = false;
+	if useClassifier
+		% do classify
+		% classification
+		[pred] = softmaxPredict(handles.imageDataset.softmaxModel, queryImageFeature);
+		
+		cls_idxs = find(handles.imageDataset.chairLabels2 == pred);
+	end
 
 	handles.queryImageFeature = queryImageFeature;
 	guidata(hObject, handles);
+	
 	assignin('base', 'queryImageFeature', handles.queryImageFeature);
 
 	if (metric == 1)
-		idxs = L1(numOfReturnedImgs, handles.queryImageFeature, handles.imageDataset.allFeatures(:, cls_idxs)); 
+		idxs = L1(numOfReturnedImgs, handles.queryImageFeature, handles.featureSet(:, cls_idxs)); 
 	elseif (metric == 2 || metric == 3 || metric == 4 || metric == 5 || metric == 6  || metric == 7 || metric == 8 || metric == 9 || metric == 10 || metric == 11)
-		idxs = L2(numOfReturnedImgs, handles.queryImageFeature, handles.imageDataset.allFeatures, metric);
+		idxs = L2(numOfReturnedImgs, handles.queryImageFeature, handles.featureSet(:, cls_idxs), metric);
 	else
-		idxs = relativeDeviation(numOfReturnedImgs, handles.queryImageFeature, handles.imageDataset.allFeatures);
+		idxs = relativeDeviation(numOfReturnedImgs, handles.queryImageFeature, handles.featureSet(:, cls_idxs));
 	end
-	plotReturnedImages(handles.queryImage, handles.imageDataset.images, idxs, cls_idxs);
+	plotReturnedImages(handles.queryImage, handles.retrievalData.img_resized, idxs, cls_idxs);
 end
 
 %% ==========================================================================
@@ -318,86 +303,71 @@ end
 %% ==========================================================================
 % --- Executes on button press in btnSelectImageDirectory.
 function btnSelectImageDirectory_Callback(hObject, eventdata, handles)
-	% hObject    handle to btnSelectImageDirectory (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    structure with handles and user data (see GUIDATA)
-
 	% select image directory
 	unlabeledDir = uigetdir(pwd, 'Select the directory of unlabeled images');
 	if ( unlabeledDir ~= 0 )
 		handles.unlabeledDir = unlabeledDir;
 		guidata(hObject, handles);
+        
+        set(handles.info, 'String', ['unlabeled dir: ', unlabeledDir]);
 	else
 		return;
 	end
 end
 
+function btnSelLabeledDir_Callback(hObject, eventdata, handles)
+	labeledDir = uigetdir(pwd, 'Select the directory of labeled images');
+	if ( labeledDir ~= 0 )
+		handles.labeledDir = labeledDir;
+		guidata(hObject, handles);
+		
+		set(handles.info, 'String', ['labeled dir: ', labeledDir]);
+	else
+		return;
+	end
+end
+
+% --- Executes on button press in btnSelRetrievalDir.
+function btnSelRetrievalDir_Callback(hObject, eventdata, handles)
+    retrievalDir = uigetdir(pwd, 'Select the directory of images to retrieve from');
+	if ( retrievalDir ~= 0 )
+		handles.retrievalDir = retrievalDir;
+		guidata(hObject, handles);
+		
+		set(handles.info, 'String', ['retrieval dir: ', retrievalDir]);
+	else
+		return;
+    end
+end
+
 %% ==========================================================================
 % --- Executes on button press in btnCreateDB.
 function btnCreateDB_Callback(hObject, eventdata, handles)
-	% hObject    handle to btnCreateDB (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    structure with handles and user data (see GUIDATA)
-
-	if (~isfield(handles, 'unlabeledDir'))
-		errordlg('Please select an image directory first!');
+	if (~isfield(handles, 'retrievalDir'))
+		errordlg('Please select an image directory for retrieving first!');
 		return;
 	end
 
 	disp('creating db...');
 	
-	% construct folder name foreach image type
-	pngImagesDir = fullfile(handles.unlabeledDir, '*.png');
+	handles.retrievalData = load_it(handles.retrievalDir, handles.options, false);
+	
+	numImages = numel(handles.retrievalData.fns);
 
-	% calculate total number of images
-	num_of_png_images = numel( dir(pngImagesDir) );
-	totalImages = num_of_png_images;
-
-	png_files = dir(pngImagesDir);
-
-	if (~isempty( png_files ))
-		%% ======================================================================
-		%  relevant parameters values
-		patchSize = 64;
-		inputSize  = patchSize * patchSize;
-		numLabels  = 35;
-		hiddenSize = 50;
-		sparsityParam = 0.1; % desired average activation of the hidden units.
-							 % (This was denoted by the Greek alphabet rho, which looks like a lower-case "p",
-							 %  in the lecture notes). 
-		lambda = 3e-3;       % weight decay parameter       
-		beta = 3;            % weight of sparsity penalty term   
-		maxIter = 400;
+	if (numImages > 0)
+		imgData = cell2mat4d(handles.retrievalData.img_resized);
+		featureSet = cnnComputeFeature(handles.model, imgData, handles.options);
 		
-		%% ======================================================================
-		% Load chair database files
-		read_chairs;
-
-		%% ======================================================================
-		%  Train the sparse autoencoder
-		useAE = true;
-		if useAE
-			trainAE;
-		else
-			opttheta = [];
+		useClassifier = false;
+		if useClassifier
+			% do classify
 		end
 		
-		%%======================================================================
-		%% Train the softmax classifier
-
-		trainFeatures = extractFeatures(opttheta, hiddenSize, inputSize, trainData, useAE);
-		allFeatures = extractFeatures(opttheta, hiddenSize, inputSize, chairData, useAE);
+		handles.featureSet = featureSet;
+		guidata(hObject, handles);
 		
-		lambda = 1e-4;
-		options.maxIter = 100;
-		featureSize = size(trainFeatures, 1);
-		softmaxModel = softmaxTrain(featureSize, numLabels, 1e-4, ...
-									trainFeatures, trainLabels, options);
-									
 		% prompt to save dataset
-		uisave({'softmaxModel', 'chairLabels2', 'chairData', 'allFeatures', 'x', 'images', 'u', 'k', 'opttheta', 'patchSize', 'hiddenSize', 'inputSize', 'useAE'}, 'dataset1');
-		% save('dataset.mat', 'dataset', '-mat');
-		clear('softmaxModel', 'jpg_counter', 'png_counter', 'bmp_counter');
+		uisave({'featureSet'}, 'features');
 	end
 	
 	disp('creating db finished');
@@ -406,19 +376,17 @@ end
 %% ==========================================================================
 % --- Executes on button press in btn_LoadDataset.
 function btn_LoadDataset_Callback(hObject, eventdata, handles)
-	% hObject    handle to btn_LoadDataset (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    structure with handles and user data (see GUIDATA)
 	[fname, pthname] = uigetfile('*.mat', 'Select the Dataset');
 	if (fname ~= 0)
 		dataset_fullpath = strcat(pthname, fname);
 		[pathstr, name, ext] = fileparts(dataset_fullpath);
 		if ( strcmp(lower(ext), '.mat') == 1)
 			filename = fullfile( pathstr, strcat(name, ext) );
-			handles.imageDataset = load(filename);
+			handles.featureSet = load(filename);
 			guidata(hObject, handles);
+			
 			%make dataset visible from workspace
-			assignin('base', 'imageDataset', handles.imageDataset);
+			assignin('base', 'featureSet', handles.featureSet);
 			helpdlg('Dataset loaded successfuly!');
 		else
 			errordlg('You have not selected the correct file type');
@@ -428,96 +396,29 @@ function btn_LoadDataset_Callback(hObject, eventdata, handles)
 	end
 end
 
-
-% --- Executes on button press in btnSelLabeledDir.
-function btnSelLabeledDir_Callback(hObject, eventdata, handles)
-% hObject    handle to btnSelLabeledDir (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-	labeledDir = uigetdir(pwd, 'Select the directory of labeled images');
-	if ( labeledDir ~= 0 )
-		handles.labeledDir = labeledDir;
-		guidata(hObject, handles);
-	else
-		return;
-	end
-end
-
 % --- Executes on button press in btnTrainClassifier.
 function btnTrainClassifier_Callback(hObject, eventdata, handles)
-	handles.labeledData = load_it(handles.labeledDir, handles.options.imageDim, true);
+	handles.labeledData = load_it(handles.labeledDir, handles.options, true);
 	labeledImages = handles.labeledData.img_resized;
 	[trainImages, trainLabels, testImages, testLabels, trainSet, testSet] = sampleData4d(labeledImages, handles.labeledData.labels);
 	
-	handles.out.trainSet = trainSet;
-	handles.out.testSet = testSet;
-	handles.out.trainLabels = trainLabels;
-	handles.out.testLabels = testLabels;
+	handles.model.trainSet = trainSet;
+	handles.model.testSet = testSet;
+	handles.model.trainLabels = trainLabels;
+	handles.model.testLabels = testLabels;
 	
-	numTrainImages = numel(trainSet);
-	numTestImages = numel(testSet);
-	
-	% do convolution and pooling to train and test images, got pooled features
-	stepSize = 50;
-	assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
-
-	t = floor((handles.options.imageDim - handles.options.patchDim + 1) / handles.options.poolDim)
-	pooledFeaturesTrain = zeros(handles.options.hiddenSize, numTrainImages, t, t);
-	pooledFeaturesTest = zeros(handles.options.hiddenSize, numTestImages, t, t);
-
-	disp('convolving & pooling for features...');
-	
-	visibleSize = handles.options.patchDim * handles.options.patchDim * handles.options.imageChannels;
-	W = reshape(handles.out.optTheta(1:visibleSize * handles.options.hiddenSize), handles.options.hiddenSize, visibleSize);
-	b = optTheta(2*handles.options.hiddenSize*visibleSize+1:2*handles.options.hiddenSize*visibleSize+handles.options.hiddenSize);
-
-	for convPart = 1:(handles.options.hiddenSize / stepSize)
-		featureStart = (convPart - 1) * stepSize + 1;
-		featureEnd = convPart * stepSize;
-		
-		fprintf('Step %d: features %d to %d\n', convPart, featureStart, featureEnd);  
-		Wt = W(featureStart:featureEnd, :);
-		bt = b(featureStart:featureEnd);
-		
-		fprintf('Convolving and pooling train images\n');
-		convolvedFeaturesThis = cnnConvolve(handles.options.patchDim, stepSize, ...
-			trainImages, Wt, bt, handles.out.ZCAWhite, handles.out.meanPatch);
-		pooledFeaturesThis = cnnPool(handles.options.poolDim, convolvedFeaturesThis);
-		pooledFeaturesTrain(featureStart:featureEnd, :, :, :) = pooledFeaturesThis;   
-		toc();
-		clear convolvedFeaturesThis pooledFeaturesThis;
-		
-		fprintf('Convolving and pooling test images\n');
-		convolvedFeaturesThis = cnnConvolve(handles.options.patchDim, stepSize, ...
-			testImages, Wt, bt, ZCAWhite, meanPatch);
-		pooledFeaturesThis = cnnPool(handles.options.poolDim, convolvedFeaturesThis);
-		pooledFeaturesTest(featureStart:featureEnd, :, :, :) = pooledFeaturesThis;   
-		toc();
-
-		clear convolvedFeaturesThis pooledFeaturesThis;
-	end
-
-	disp('convolving & pooling for features finished');
-	
-	handles.out.pooledFeaturesTrain = pooledFeaturesTrain;
-	handles.out.pooledFeaturesTest = pooledFeaturesTest;
-
-	% Reshape the pooledFeatures to form an input vector for softmax
-	softmaxXtrain = permute(pooledFeaturesTrain, [1 3 4 2]);
-	softmaxXtrain = reshape(softmaxXtrain, numel(pooledFeaturesTrain) / numTrainImages, numTrainImages);
-	softmaxYtrain = trainLabels;
-	
-	handles.out.softmaxYtrain = softmaxYtrain;
+	softmaxXTrain = cnnComputeFeature(handles.model, trainImages, handles.options);
+	softmaxYTrain = trainLabels;
 
 	options = struct;
-	options.maxIter = 200;
+	options.maxIter = 20;%temply
 
 	disp('training softmax...');
 	softmaxModel = softmaxTrain(numel(pooledFeaturesTrain) / numTrainImages,...
 		handles.options.numClasses, handles.options.softmaxLambda, softmaxXtrain, softmaxYtrain, options);
 	disp('training softmax finished');
 	
-	handles.out.softmaxModel = softmaxModel;
+	handles.model.softmaxModel = softmaxModel;
 	guidata(hObject, handles);
 end
 
@@ -526,33 +427,33 @@ function btnTestClassifier_Callback(hObject, eventdata, handles)
 	% test classifier
 	disp('predicting for test data')
 	
-	numTestImages = numel(handles.out.testSet);
+	numTestImages = numel(handles.model.testSet);
 	
-	softmaxXtest = permute(handles.out.pooledFeaturesTest, [1 3 4 2]);
-	softmaxXtest = reshape(softmaxXtest, numel(handles.out.pooledFeaturesTest) / numTestImages, numTestImages);
-	softmaxYtest = handles.out.testLabels;
+	softmaxXtest = permute(handles.model.pooledFeaturesTest, [1 3 4 2]);
+	softmaxXtest = reshape(softmaxXtest, numel(handles.model.pooledFeaturesTest) / numTestImages, numTestImages);
+	softmaxYtest = handles.model.testLabels;
 	
-	handles.out.softmaxXtest = softmaxYtest;
+	handles.model.softmaxXtest = softmaxYtest;
 
-	[predTest] = softmaxPredict(handles.out.softmaxModel, softmaxXtest);
+	[predTest] = softmaxPredict(handles.model.softmaxModel, softmaxXtest);
 	accTest = (predTest(:) == softmaxYtest(:));
 	accTest = sum(accTest) / size(accTest, 1);
 	fprintf('Accuracy: %2.3f%%\n', accTest * 100);
 
 	% test on all examples
 	disp('predicting for all data')
-	softmaxXall = [handles.out.softmaxXtrain handles.out.softmaxXtest];
-	softmaxYall = [handles.out.trainLabels; handles.out.testLabels];
+	softmaxXall = [handles.model.softmaxXtrain handles.model.softmaxXtest];
+	softmaxYall = [handles.model.trainLabels; handles.model.testLabels];
 
-	[predAll] = softmaxPredict(handles.out.softmaxModel, softmaxXall);
+	[predAll] = softmaxPredict(handles.model.softmaxModel, softmaxXall);
 	accAll = (predAll(:) == softmaxYall(:));
 	accAll = sum(accAll) / size(accAll, 1);
 	fprintf('Accuracy on all: %2.3f%%\n', accAll * 100);
 	
-	handles.out.accTest = accTest;
-	handles.out.accAll = accAll;
-	handles.out.predTest = predTest;
-	handles.out.predAll = predAll;
+	handles.model.accTest = accTest;
+	handles.model.accAll = accAll;
+	handles.model.predTest = predTest;
+	handles.model.predAll = predAll;
 end
 
 % --- Executes on selection change in selClassifyAlg.
@@ -581,6 +482,11 @@ end
 
 % --- Executes on button press in btnComputeFeatures.
 function btnComputeFeatures_Callback(hObject, eventdata, handles)
+	if (~isfield(handles, 'unlabeledDir'))
+		errordlg('Please select dir of unlabeled images!');
+		return;
+	end
+	
     handles.unlabeledData = load_it(handles.unlabeledDir, handles.options.imageDim, false);
 	
 	%images = handles.unlabeledData.images;
@@ -602,9 +508,9 @@ function btnComputeFeatures_Callback(hObject, eventdata, handles)
 	patches = bsxfun(@minus, patches, meanPatch);
 
 	% Apply ZCA whitening
-	sigma = patches * patches' / numPatches;
+	sigma = patches * patches' / handles.options.numPatches;
 	[u, s, v] = svd(sigma);
-	ZCAWhite = u * diag(1 ./ sqrt(diag(s) + epsilon)) * u';
+	ZCAWhite = u * diag(1 ./ sqrt(diag(s) + handles.options.epsilon)) * u';
 	patches = ZCAWhite * patches;
 	
 	% train linear AE, got feature filter matrix
@@ -613,7 +519,7 @@ function btnComputeFeatures_Callback(hObject, eventdata, handles)
 
 	options = struct;
 	options.Method = 'lbfgs'; 
-	options.maxIter = 400;
+	options.maxIter = 40;%temply
 	options.display = 'on';
 
 	disp('training linear encoder...');
@@ -624,10 +530,10 @@ function btnComputeFeatures_Callback(hObject, eventdata, handles)
 								  theta, options);
 	disp('training linear encoder finished');
 
-	handles.out = struct;
-	handles.out.optTheta = optTheta;
-	handles.out.ZCAWhite = ZCAWhite;
-	handles.out.meanPatch = meanPatch;
+	handles.model = struct;
+	handles.model.optTheta = optTheta;
+	handles.model.ZCAWhite = ZCAWhite;
+	handles.model.meanPatch = meanPatch;
 	
 	guidata(hObject, handles);
 
@@ -636,32 +542,20 @@ function btnComputeFeatures_Callback(hObject, eventdata, handles)
 	fprintf('Saved\n');
 end
 
-% --- Executes on button press in btnSelRetrievalDir.
-function btnSelRetrievalDir_Callback(hObject, eventdata, handles)
-    retrievalDir = uigetdir(pwd, 'Select the directory of images to retrieve from');
-	if ( retrievalDir ~= 0 )
-		handles.retrievalDir = retrievalDir;
-		guidata(hObject, handles);
-	else
-		return;
-    end
-end
-
-function setParam(hObject, handles)
-	paramStru = struct;
+function options = getParam()
+	options = struct;
 	options.patchDim = 8;
 	options.imageChannels = 3;     % number of channels (rgb, so 3)
-	options.numPatches = 200000;   % number of patches
+	options.numPatches = 100;   % number of patches %temply
 	options.hiddenSize  = 400;           % number of hidden units 
 	options.sparsityParam = 0.035; % desired average activation of the hidden units.
 	options.lambda = 3e-3;         % weight decay parameter       
 	options.beta = 5;              % weight of sparsity penalty term       
 	options.epsilon = 0.1;	       % epsilon for ZCA whitening
-	options.poolDim = 48;          % dimension of pooling region % imageDim - patchDim + 1 = 57
+	options.poolDim = 48;          % dimension of pooling region % imageDim - patchDim + 1 = 57 
 	options.numClasses = 12;
 	options.imageDim = 487;
 	options.softmaxLambda = 1e-4;
-	handles.options = options;
 end
 
 % --- Executes on button press in btnSaveModel.
@@ -670,4 +564,16 @@ end
 
 % --- Executes on button press in btnLoadModel.
 function btnLoadModel_Callback(hObject, eventdata, handles)
+end
+
+function info_Callback(hObject, eventdata, handles)
+% Hints: get(hObject,'String') returns contents of info as text
+%        str2double(get(hObject,'String')) returns contents of info as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function info_CreateFcn(hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		set(hObject,'BackgroundColor','white');
+	end
 end

@@ -1,18 +1,40 @@
-function dataStru = load_it(dataFrom, scaledSize)
-
-if ~exist('scaledSize', 'var')
-	scaledSize = 128;
+function dataStru = load_it(imgDirs, options, labeled)
+%imgDirs = {'chair_labeled_97_png', 'yes', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6'};
+if ~exist('options', 'var')
+	options = struct;
 end
 
-if ~exist('dataFrom', 'var')
-	dataFrom = 'read';
+if ~isfield(options, 'imageDim')
+	options.imageDim = 128;
 end
 
-saveName = sprintf('../../data/chairs_labeled_%dx%d.mat', scaledSize, scaledSize);
+if ~exist('labeled', 'var')
+	labeled = false;
+end
 
-if strcmp(dataFrom, 'read')
-	imgBaseDir = '../../images/';
-	imgDirs = {'chair_labeled_97_png', 'yes', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6'};
+if ~isfield(options, 'dataFrom')
+	options.dataFrom = 'read';
+end
+
+if ~isfield(options, 'save')
+	options.save = false;
+end
+
+if ~isfield(options, 'dataDir')
+	options.dataDir = '../../data';
+end
+
+if ~isfield(options, 'imgBaseDir')
+	options.imgBaseDir = '../../images';
+end
+
+if strcmp(class(imgDirs), 'char')
+	imgDirs = {imgDirs};
+end
+
+saveName = sprintf('%s/chairs_labeled_%dx%d.mat', options.dataDir, options.imageDim, options.imageDim);
+
+if strcmp(options.dataFrom, 'read')
 	dirCnt = numel(imgDirs);
 
 	images = {};
@@ -25,7 +47,16 @@ if strcmp(dataFrom, 'read')
 	badCnt = zeros(1, dirCnt);
 
 	for i = 1:dirCnt
-		[images1, img_resized1, x1, labels1, fns1, bad1] = read_labeled_chairs([imgBaseDir imgDirs{i} '/'], scaledSize, false, 2, false);
+		d = imgDirs{i};
+		if ~(d(end) == '/' || d(end) == '\')
+			d = [d '/'];
+		end
+		
+		if ~isAbsPath(d)
+			d = [options.imgBaseDir '/' d];
+		end
+		
+		[images1, img_resized1, x1, labels1, fns1, bad1] = read_labeled_chairs(d, options.imageDim, false, 2, false);
 		goodCnt(i) = numel(fns1);
 		badCnt(i) = numel(bad1);
 		[images, img_resized, x, labels, fns, bad] = merge_chairs_data(images, img_resized, x, labels, fns, bad, images1, img_resized1, x1, labels1, fns1, bad1);
@@ -41,14 +72,16 @@ dataStru.bad = bad;
 dataStru.goodCnt = badCnt;
 dataStru.imgDirs = imgDirs;
 
-	disp('saving...')
-	save(saveName, 'dataStru', '-v7.3');
-	disp('done')
+	if options.save
+		disp('saving...')
+		save(saveName, 'dataStru', '-v7.3');
+		disp('done')
+	end
 
 	fprintf('read: %d\n', numel(fns));
 	fprintf('bad : %d\n', numel(bad));
 
-elseif strcmp(dataFrom, 'load')
+elseif strcmp(options.dataFrom, 'load')
 
 	disp('loading...')
 	load(saveName);
