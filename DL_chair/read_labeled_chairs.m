@@ -86,7 +86,10 @@ function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir
 		img_resized{idx} = b;
 		
 		labelCode = dirs(i).name(1:4);
-		labels(idx) = code2label(labelCode, labelLevel);
+		tt = code2label(labelCode, labelLevel);
+        if numel(tt) == 1
+			labels(idx) = tt;
+        end
 
 		x(:, idx) = b(:);
 		fns{idx} = fn;

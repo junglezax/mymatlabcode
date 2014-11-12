@@ -72,14 +72,15 @@ dataStru.bad = bad;
 dataStru.goodCnt = badCnt;
 dataStru.imgDirs = imgDirs;
 
+
+	fprintf('read: %d\n', numel(fns));
+	fprintf('bad : %d\n', numel(bad));
+
 	if options.save
 		disp('saving...')
 		save(saveName, 'dataStru', '-v7.3');
 		disp('done')
 	end
-
-	fprintf('read: %d\n', numel(fns));
-	fprintf('bad : %d\n', numel(bad));
 
 elseif strcmp(options.dataFrom, 'load')
 
