@@ -1,16 +1,17 @@
-function [accTest, predTest, accAll, predAll, paramStru, outStru, dataStru] = runIt(dataFrom, dataStru)
+function [accTest, predTest, accAll, predAll, runoptions, outStru, dataStru] = runIt(dataFrom, dataStru)
 % dataFrom: read, load, none
-% example: [accTest, predTest, accAll, predAll, paramStru, outStru, dataStru] = runIt();
-%          [accTest, predTest, accAll, predAll, paramStru, outStru, dataStru] = runIt('load');
-%          [accTest, predTest, accAll, predAll, paramStru, outStru] = runIt('none', dataStru);
+% example: [accTest, predTest, accAll, predAll, runoptions, outStru, dataStru] = runIt();
+%          [accTest, predTest, accAll, predAll, runoptions, outStru, dataStru] = runIt('load');
+%          [accTest, predTest, accAll, predAll, runoptions, outStru] = runIt('none', dataStru);
 
 if ~exist('dataFrom', 'var')
 	dataFrom = 'read';
 end
 
 % parameters
-scaledSize = 487;
+imageDim = 487;
 patchDim = 8;
+poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 
 imageChannels = 3;     % number of channels (rgb, so 3)
 
@@ -24,34 +25,30 @@ beta = 5;              % weight of sparsity penalty term
 
 epsilon = 0.1;	       % epsilon for ZCA whitening
 
-poolDim = 48;          % dimension of pooling region % imageDim - patchDim + 1 = 57
-
 numClasses = 12;
 
-imageDim = scaledSize;
 visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
 outputSize  = visibleSize;   % number of output units
 
-paramStru.numPatches = numPatches;
-paramStru.scaledSize = scaledSize;
-paramStru.patchDim = patchDim;
-paramStru.imageChannels = imageChannels;
-paramStru.hiddenSize = hiddenSize;
-paramStru.sparsityParam = sparsityParam;
-paramStru.lambda = lambda;
-paramStru.beta = beta;
-paramStru.poolDim = poolDim;
-paramStru.epsilon = epsilon;
-paramStru.numClasses = numClasses;
+runoptions.numPatches = numPatches;
+runoptions.imageDim = imageDim;
+runoptions.patchDim = patchDim;
+runoptions.imageChannels = imageChannels;
+runoptions.hiddenSize = hiddenSize;
+runoptions.sparsityParam = sparsityParam;
+runoptions.lambda = lambda;
+runoptions.beta = beta;
+runoptions.poolDim = poolDim;
+runoptions.epsilon = epsilon;
+runoptions.numClasses = numClasses;
 
 % load images
-%[images, labels, x, img_resized] = read_97chairs(scaledSize, false);
-
 oldPwd = pwd;
 cd ../
 
 if ~strcmp(dataFrom, 'none')
-	dataStru = load_it(dataFrom, scaledSize);
+	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8'};
+	dataStru = load_it(imgDirs, runoptions, true);
 end
 
 images = dataStru.images;
