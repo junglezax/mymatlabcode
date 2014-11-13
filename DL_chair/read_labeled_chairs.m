@@ -1,18 +1,18 @@
-function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir, scaledSize, toGray, labelLevel, verbose)
+function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir, imageDim, toGray, labelLevel, verbose)
 % read labeled furniture images
 % example: 
 %  [images, img_resized, x, labels, fns] = read_labeled_chairs('../../images/chair_labeled_97_png/', 64, true, 2);
 
-	if ~exist('scaledSize', 'var')
-		scaledSize = 64;
+	if ~exist('imageDim', 'var')
+		imageDim = 64;
 	end
 	
 	if ~exist('toGray', 'var')
 		toGray = false;
 	end
 
-	if ~exist('scaledSize', 'var')
-		scaledSize = 64;
+	if ~exist('imageDim', 'var')
+		imageDim = 64;
 	end
 	
 	if ~exist('labelLevel', 'var')
@@ -37,9 +37,9 @@ function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir
 	img_resized = {};
 	images = {};
 	if toGray
-		x = zeros(scaledSize*scaledSize, m);
+		x = zeros(imageDim*imageDim, m);
 	else
-		x = zeros(scaledSize*scaledSize*3, m);
+		x = zeros(imageDim*imageDim*3, m);
 	end
 	
 	fprintf('reading images from %s\n', imgDir);
@@ -82,15 +82,14 @@ function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir
 
 		images{idx} = im;
 		
-		b = imresize(a, [scaledSize, scaledSize]);
+		b = imresize(a, [imageDim, imageDim]);
 		img_resized{idx} = b;
 		
 		labelCode = dirs(i).name(1:4);
-		
 		tt = code2label(labelCode, labelLevel);
-		if numel(tt) == 1
+        	if numel(tt) == 1
 			labels(idx) = tt;
-		end
+	        end
 
 		x(:, idx) = b(:);
 		fns{idx} = fn;
