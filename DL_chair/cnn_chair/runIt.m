@@ -9,7 +9,7 @@ if ~exist('dataFrom', 'var')
 end
 
 % parameters
-scaledSize = 495;
+imageDim = 495;
 patchDim = 16;
 poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 

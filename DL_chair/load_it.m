@@ -35,7 +35,6 @@ end
 saveName = sprintf('%s/chairs_labeled_%dx%d.mat', options.dataDir, options.imageDim, options.imageDim);
 
 if strcmp(options.dataFrom, 'read')
->>>>>>> 961e09cd191638039c7b99a86e91aa75bcd605b0
 	dirCnt = numel(imgDirs);
 
 	images = {};
