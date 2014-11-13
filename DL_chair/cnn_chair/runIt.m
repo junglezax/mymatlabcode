@@ -9,12 +9,12 @@ if ~exist('dataFrom', 'var')
 end
 
 % parameters
-scaledSize = 487;
-patchDim = 8;
+scaledSize = 495;
+patchDim = 16;
 
 imageChannels = 3;     % number of channels (rgb, so 3)
 
-numPatches = 200000;   % number of patches
+numPatches = 100000;   % number of patches
 
 hiddenSize  = 400;           % number of hidden units 
 
@@ -24,7 +24,7 @@ beta = 5;              % weight of sparsity penalty term
 
 epsilon = 0.1;	       % epsilon for ZCA whitening
 
-poolDim = 48;          % dimension of pooling region % imageDim - patchDim + 1 = 57
+poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1) / poolDim = int
 
 numClasses = 12;
 

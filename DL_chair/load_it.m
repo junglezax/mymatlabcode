@@ -12,7 +12,9 @@ saveName = sprintf('../../data/chairs_labeled_%dx%d.mat', scaledSize, scaledSize
 
 if strcmp(dataFrom, 'read')
 	imgBaseDir = '../../images/';
-	imgDirs = {'chair_labeled_97_png', 'yes', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6'};
+	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8'};
+	disp(imgDirs);
+
 	dirCnt = numel(imgDirs);
 
 	images = {};
@@ -41,12 +43,12 @@ dataStru.bad = bad;
 dataStru.goodCnt = badCnt;
 dataStru.imgDirs = imgDirs;
 
+	fprintf('read: %d\n', numel(fns));
+	fprintf('bad : %d\n', numel(bad));
+
 	disp('saving...')
 	save(saveName, 'dataStru', '-v7.3');
 	disp('done')
-
-	fprintf('read: %d\n', numel(fns));
-	fprintf('bad : %d\n', numel(bad));
 
 elseif strcmp(dataFrom, 'load')
 
