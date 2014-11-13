@@ -47,7 +47,7 @@ oldPwd = pwd;
 cd ../
 
 if ~strcmp(dataFrom, 'none')
-	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8'};
+	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9'};
 	dataStru = load_it(imgDirs, runoptions, true);
 end
 
