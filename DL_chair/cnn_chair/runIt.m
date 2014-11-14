@@ -12,20 +12,15 @@ end
 imageDim = 495;
 patchDim = 16;
 poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
-
 imageChannels = 3;     % number of channels (rgb, so 3)
-
 numPatches = 100000;   % number of patches
-
 hiddenSize  = 400;           % number of hidden units 
-
 sparsityParam = 0.035; % desired average activation of the hidden units.
 lambda = 3e-3;         % weight decay parameter       
 beta = 5;              % weight of sparsity penalty term       
-
 epsilon = 0.1;	       % epsilon for ZCA whitening
-
 numClasses = 12;
+stepSize = 10;
 
 visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
 outputSize  = visibleSize;   % number of output units
@@ -41,13 +36,16 @@ runoptions.beta = beta;
 runoptions.poolDim = poolDim;
 runoptions.epsilon = epsilon;
 runoptions.numClasses = numClasses;
+runoptions.stepSize = stepSize; % step size for cnnConvolve and pooling
+assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
+
 
 % load images
 oldPwd = pwd;
 cd ../
 
 if ~strcmp(dataFrom, 'none')
-	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9'};
+	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10'};
 	dataStru = load_it(imgDirs, runoptions, true);
 end
 
@@ -125,9 +123,6 @@ numTrainImages = numel(trainSet);
 numTestImages = numel(testSet);
 
 % do convolution and pooling to train and test images, got pooled features
-stepSize = 50;
-assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
-
 pooledFeaturesTrain = zeros(hiddenSize, numTrainImages, ...
     floor((imageDim - patchDim + 1) / poolDim), ...
     floor((imageDim - patchDim + 1) / poolDim) );
