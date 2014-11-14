@@ -19,7 +19,7 @@ sparsityParam = 0.035; % desired average activation of the hidden units.
 lambda = 3e-3;         % weight decay parameter       
 beta = 5;              % weight of sparsity penalty term       
 epsilon = 0.1;	       % epsilon for ZCA whitening
-numClasses = 12;
+numClasses = 14;
 stepSize = 10;
 
 visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
