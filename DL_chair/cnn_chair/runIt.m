@@ -24,16 +24,13 @@ maxIter = 400;
 softmaxIter = 200;
 numClasses = 14;
 
-visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
-outputSize  = visibleSize;   % number of output units
-
 assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
 
-debug = true;
-if debug
+% for debug
+if 0
 	imageDim = 15;
 	patchDim = 4;
-	poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
+	poolDim = 4;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 	imageChannels = 3;     % number of channels (rgb, so 3)
 	numPatches = 10;   % number of patches
 	hiddenSize  = 4;           % number of hidden units 
@@ -42,6 +39,9 @@ if debug
 	softmaxIter = 5;
 	numClasses = 14;
 end
+
+visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
+outputSize  = visibleSize;   % number of output units
 
 runOptions.numPatches = numPatches;
 runOptions.imageDim = imageDim;
@@ -54,11 +54,9 @@ runOptions.beta = beta;
 runOptions.poolDim = poolDim;
 runOptions.epsilon = epsilon;
 runOptions.maxIter = maxIter;
-runOptions.maxIter = softmaxIter;
+runOptions.softmaxIter = softmaxIter;
 runOptions.numClasses = numClasses;
 runOptions.stepSize = stepSize; % step size for cnnConvolve and pooling
-
-
 
 % load images
 oldPwd = pwd;
@@ -130,7 +128,7 @@ b = optTheta(2*hiddenSize*visibleSize+1:2*hiddenSize*visibleSize+hiddenSize);
 
 %displayColorNetwork( (W*ZCAWhite)');
 
-% load train images and test images 问题来了：这里的图像和train AE用的图像是一批吗？
+% load train images and test images 问题来了：这里的图像和train AE用的图像是一批吗�?
 labeledImages = img_resized; % use same image set with feature extracting
 
 %trainSet = [8, 6, 3, 2, 5, 64, 10, 16, 15, 12, 11, 18, 19, 25, 28, 22, 23, 33, 29, 31, 24, 43, 35, 38, 36, 48, 46, 34, 45, 39, 49, 50, 53, 52, 56, 70, 68, 61, 57, 67, 62, 63, 59, 73, 75, 71, 72, 78, 81, 79, 77, 90, 83, 95, 88, 91, 92, 85, 89];
@@ -168,7 +166,7 @@ for convPart = 1:(hiddenSize / stepSize)
         trainImages, Wt, bt, ZCAWhite, meanPatch);
     pooledFeaturesThis = cnnPool(poolDim, convolvedFeaturesThis);
     pooledFeaturesTrain(featureStart:featureEnd, :, :, :) = pooledFeaturesThis;   
-    toc();
+    %toc();
     clear convolvedFeaturesThis pooledFeaturesThis;
     
     fprintf('Convolving and pooling test images\n');
@@ -176,7 +174,7 @@ for convPart = 1:(hiddenSize / stepSize)
         testImages, Wt, bt, ZCAWhite, meanPatch);
     pooledFeaturesThis = cnnPool(poolDim, convolvedFeaturesThis);
     pooledFeaturesTest(featureStart:featureEnd, :, :, :) = pooledFeaturesThis;   
-    toc();
+    %toc();
 
     clear convolvedFeaturesThis pooledFeaturesThis;
 end

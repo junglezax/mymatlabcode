@@ -13,12 +13,12 @@ theta = reshape(theta, numClasses, inputSize);
 
 numCases = size(data, 2);
 
-numCases
-labels
 groundTruth = full(sparse(labels, 1:numCases, 1));
-cost = 0;
+maxLabel = max(labels); %may be some labels not used
+groundTruth(maxLabel+1:numClasses, :) = 0;
 
-thetagrad = zeros(numClasses, inputSize);
+%cost = 0;
+%thetagrad = zeros(numClasses, inputSize);
 
 %% ---------- YOUR CODE HERE --------------------------------------
 %  Instructions: Compute the cost and gradient for softmax regression.
@@ -34,6 +34,6 @@ thetagrad = theta .* lambda - (groundTruth - eM) * data' ./ numCases;
 
 % ------------------------------------------------------------------
 % Unroll the gradient matrices into a vector for minFunc
-grad = [thetagrad(:)];
+grad = thetagrad(:);
 end
 
