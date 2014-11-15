@@ -1,8 +1,8 @@
-function [accTest, predTest, accAll, predAll, runoptions, outStru, dataStru] = runIt(dataFrom, dataStru)
+function [accTest, predTest, accAll, predAll, runOptions, outStru, dataStru] = runIt(dataFrom, dataStru)
 % dataFrom: read, load, none
-% example: [accTest, predTest, accAll, predAll, runoptions, outStru, dataStru] = runIt();
-%          [accTest, predTest, accAll, predAll, runoptions, outStru, dataStru] = runIt('load');
-%          [accTest, predTest, accAll, predAll, runoptions, outStru] = runIt('none', dataStru);
+% example: [accTest, predTest, accAll, predAll, runOptions, outStru, dataStru] = runIt();
+%          [accTest, predTest, accAll, predAll, runOptions, outStru, dataStru] = runIt('load');
+%          [accTest, predTest, accAll, predAll, runOptions, outStru] = runIt('none', dataStru);
 
 if ~exist('dataFrom', 'var')
 	dataFrom = 'read';
@@ -15,29 +15,49 @@ poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)
 imageChannels = 3;     % number of channels (rgb, so 3)
 numPatches = 100000;   % number of patches
 hiddenSize  = 400;           % number of hidden units 
+stepSize = 10; % hiddenSize / stepSize = int
 sparsityParam = 0.035; % desired average activation of the hidden units.
 lambda = 3e-3;         % weight decay parameter       
 beta = 5;              % weight of sparsity penalty term       
 epsilon = 0.1;	       % epsilon for ZCA whitening
+maxIter = 400;
+softmaxIter = 200;
 numClasses = 14;
-stepSize = 10;
 
 visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
 outputSize  = visibleSize;   % number of output units
 
-runoptions.numPatches = numPatches;
-runoptions.imageDim = imageDim;
-runoptions.patchDim = patchDim;
-runoptions.imageChannels = imageChannels;
-runoptions.hiddenSize = hiddenSize;
-runoptions.sparsityParam = sparsityParam;
-runoptions.lambda = lambda;
-runoptions.beta = beta;
-runoptions.poolDim = poolDim;
-runoptions.epsilon = epsilon;
-runoptions.numClasses = numClasses;
-runoptions.stepSize = stepSize; % step size for cnnConvolve and pooling
 assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
+
+debug = true;
+if debug
+	imageDim = 15;
+	patchDim = 4;
+	poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
+	imageChannels = 3;     % number of channels (rgb, so 3)
+	numPatches = 10;   % number of patches
+	hiddenSize  = 4;           % number of hidden units 
+	stepSize = 2; % hiddenSize / stepSize = int
+	maxIter = 10;
+	softmaxIter = 5;
+	numClasses = 14;
+end
+
+runOptions.numPatches = numPatches;
+runOptions.imageDim = imageDim;
+runOptions.patchDim = patchDim;
+runOptions.imageChannels = imageChannels;
+runOptions.hiddenSize = hiddenSize;
+runOptions.sparsityParam = sparsityParam;
+runOptions.lambda = lambda;
+runOptions.beta = beta;
+runOptions.poolDim = poolDim;
+runOptions.epsilon = epsilon;
+runOptions.maxIter = maxIter;
+runOptions.maxIter = softmaxIter;
+runOptions.numClasses = numClasses;
+runOptions.stepSize = stepSize; % step size for cnnConvolve and pooling
+
 
 
 % load images
@@ -45,8 +65,8 @@ oldPwd = pwd;
 cd ../
 
 if ~strcmp(dataFrom, 'none')
-	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10'};
-	dataStru = load_it(imgDirs, runoptions, true);
+	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11'};
+	dataStru = load_it(imgDirs, runOptions, true);
 end
 
 images = dataStru.images;
@@ -83,7 +103,7 @@ theta = initializeParameters(hiddenSize, visibleSize);
 
 options = struct;
 options.Method = 'lbfgs'; 
-options.maxIter = 400;
+options.maxIter = runOptions.maxIter;
 options.display = 'on';
 
 disp('training linear encoder...');
@@ -182,7 +202,7 @@ softmaxXtrain = reshape(softmaxXtrain, numel(pooledFeaturesTrain) / numTrainImag
 softmaxYtrain = trainLabels;
 
 options = struct;
-options.maxIter = 200;
+options.maxIter = runOptions.softmaxIter;
 
 
 disp('training softmax...');

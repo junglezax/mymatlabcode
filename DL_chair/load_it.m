@@ -1,5 +1,4 @@
 function dataStru = load_it(imgDirs, options, labeled)
-%imgDirs = {'chair_labeled_97_png', 'yes', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6'};
 if ~exist('options', 'var')
 	options = struct;
 end

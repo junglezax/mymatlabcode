@@ -13,6 +13,8 @@ theta = reshape(theta, numClasses, inputSize);
 
 numCases = size(data, 2);
 
+numCases
+labels
 groundTruth = full(sparse(labels, 1:numCases, 1));
 cost = 0;
 
