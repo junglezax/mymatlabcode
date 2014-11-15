@@ -18,7 +18,7 @@ for i = 1:numel(sizes1)
 	im1 = imresize(im, [sz sz]);
 	%fnout = [dirs{i} '/ic_launcher.png'];
     
-    d = ['../' dirs{i}];
+    d = dirs{i};
     mkdir(d);
     
 	fnout = strcat(d, '/ic_launcher.png');
