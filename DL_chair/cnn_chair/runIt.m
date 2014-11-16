@@ -27,7 +27,7 @@ numClasses = 14;
 assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
 
 % for debug
-if 0
+if 1
 	imageDim = 15;
 	patchDim = 4;
 	poolDim = 4;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int

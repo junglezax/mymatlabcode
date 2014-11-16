@@ -68,7 +68,8 @@ dataStru.x = x;
 dataStru.labels = labels;
 dataStru.fns = fns;
 dataStru.bad = bad;
-dataStru.goodCnt = badCnt;
+dataStru.goodCnt = goodCnt;
+dataStru.badCnt = badCnt;
 dataStru.imgDirs = imgDirs;
 
 	fprintf('read: %d\n', numel(fns));
