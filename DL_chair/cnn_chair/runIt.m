@@ -30,8 +30,8 @@ imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6',
 assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
 
 % for debug
-if 0
-	imgDirs = {'yes'};
+if 1
+	%imgDirs = {'yes'};
 	
 	imageDim = 15;
 	patchDim = 4;
