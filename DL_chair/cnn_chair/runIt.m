@@ -22,12 +22,17 @@ beta = 5;              % weight of sparsity penalty term
 epsilon = 0.1;	       % epsilon for ZCA whitening
 maxIter = 400;
 softmaxIter = 200;
-numClasses = 14;
+labelLevel = 3;
+numClasses = code2label(labelLevel);
+
+imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11'};
 
 assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
 
 % for debug
-if 0
+if 1
+	imgDirs = {'yes'};
+	
 	imageDim = 15;
 	patchDim = 4;
 	poolDim = 4;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
@@ -37,7 +42,6 @@ if 0
 	stepSize = 2; % hiddenSize / stepSize = int
 	maxIter = 10;
 	softmaxIter = 5;
-	numClasses = 14;
 end
 
 visibleSize = patchDim * patchDim * imageChannels;  % number of input units 
@@ -56,6 +60,7 @@ runOptions.epsilon = epsilon;
 runOptions.maxIter = maxIter;
 runOptions.softmaxIter = softmaxIter;
 runOptions.numClasses = numClasses;
+runOptions.labelLevel = labelLevel;
 runOptions.stepSize = stepSize; % step size for cnnConvolve and pooling
 
 % load images
@@ -63,7 +68,6 @@ oldPwd = pwd;
 cd ../
 
 if ~strcmp(dataFrom, 'none')
-	imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11'};
 	dataStru = load_it(imgDirs, runOptions, true);
 end
 

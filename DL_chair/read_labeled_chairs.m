@@ -48,7 +48,7 @@ function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir
 		end
 		
 		labelCode = dirs(i).name(1:4);
-		theLabel = code2label(labelCode, labelLevel);
+		theLabel = code2label(labelLevel, labelCode);
         if ~(numel(theLabel) == 1 && theLabel > 0)
 			sprintf('bad label: %s for %s', labelCode, fn);
 			bad = [bad [fn '--bad label']];
