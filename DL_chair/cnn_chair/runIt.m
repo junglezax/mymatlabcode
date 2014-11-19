@@ -9,9 +9,9 @@ if ~exist('dataFrom', 'var')
 end
 
 % parameters
-imageDim = 495;
-patchDim = 16;
-poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
+imageDim = 487;
+patchDim = 8;
+poolDim = 24;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 imageChannels = 3;     % number of channels (rgb, so 3)
 numPatches = 100000;   % number of patches
 hiddenSize  = 400;           % number of hidden units 
@@ -22,10 +22,10 @@ beta = 5;              % weight of sparsity penalty term
 epsilon = 0.1;	       % epsilon for ZCA whitening
 maxIter = 400;
 softmaxIter = 200;
-labelLevel = 3;
+labelLevel = 2;
 numClasses = code2label(labelLevel);
 
-imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11'};
+imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11', 'msmp12'};
 
 assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
 
