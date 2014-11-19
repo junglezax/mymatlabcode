@@ -13,6 +13,8 @@ theta = reshape(theta, numClasses, inputSize);
 
 numCases = size(data, 2);
 
+labels
+numCases
 groundTruth = full(sparse(labels, 1:numCases, 1));
 maxLabel = max(labels); %may be some labels not used
 groundTruth(maxLabel+1:numClasses, :) = 0;

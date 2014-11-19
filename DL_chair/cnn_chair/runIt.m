@@ -9,9 +9,9 @@ if ~exist('dataFrom', 'var')
 end
 
 % parameters
-imageDim = 495;
-patchDim = 16;
-poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
+imageDim = 487;
+patchDim = 8;
+poolDim = 24;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 imageChannels = 3;     % number of channels (rgb, so 3)
 numPatches = 100000;   % number of patches
 hiddenSize  = 400;           % number of hidden units 
