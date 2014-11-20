@@ -22,7 +22,7 @@ beta = 5;              % weight of sparsity penalty term
 epsilon = 0.1;	       % epsilon for ZCA whitening
 maxIter = 400;
 softmaxIter = 200;
-labelLevel = 2;
+labelLevel = 1;
 numClasses = code2label(labelLevel);
 
 imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11', 'msmp12', 'msmp13'};
