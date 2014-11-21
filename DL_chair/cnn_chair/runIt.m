@@ -1,13 +1,16 @@
-function [accTest, predTest, accAll, predAll, runOptions, out, data] = runIt(dataFrom, data)
+function [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt(dataFrom, data)
 % dataFrom: read, load, none
-% example: [accTest, predTest, accAll, predAll, runOptions, out, data] = runIt();
-%          [accTest, predTest, accAll, predAll, runOptions, out, data] = runIt('load');
-%          [accTest, predTest, accAll, predAll, runOptions, out] = runIt('none', data);
-%          tic; [accTest, predTest, accAll, predAll, runOptions, out, data] = runIt(); usetime = toc
+% example: [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt();
+%          [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt('load');
+%          [accTest, predTest, accAll, predAll, runOptions, model, out] = runIt('none', data);
+%          tic; [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt(); usetime = toc
 
 if ~exist('dataFrom', 'var')
 	dataFrom = 'read';
 end
+
+out = struct;
+model = struct;
 
 % parameters
 runOptions = cnnOptions();
@@ -52,14 +55,15 @@ disp('training linear encoder...');
                               theta, options);
 disp('training linear encoder finished');
 
-out = struct;
-out.optTheta = optTheta;
-out.ZCAWhite = ZCAWhite;
-out.meanPatch = meanPatch;
+model.optTheta = optTheta;
+model.ZCAWhite = ZCAWhite;
+model.meanPatch = meanPatch;
 
-fprintf('Saving\n');
-save('../../../data/chairLinearFeatures.mat', 'optTheta', 'ZCAWhite', 'meanPatch');
-fprintf('Saved\n');
+if runOptions.save
+	fprintf('Saving LAE model\n');
+	save([options.dataDir '/chairLinearFeatures.mat'], 'model');
+	fprintf('Saved\n');
+end
 
 %load ../../../data/chair97LinearFeatures.mat
 
@@ -75,74 +79,30 @@ labeledImages = data.img_resized; % use same image set with feature extracting
 %testSet = [1, 4, 7, 9, 13, 14, 17, 20, 21, 26, 27, 30, 32, 37, 40, 41, 42, 44, 47, 51, 54, 55, 58, 60, 65, 66, 69, 74, 76, 80, 82, 84, 86, 87, 93, 94];
 
 %[trainImages, trainLabels, testImages, testLabels] = sampleData4d(labeledImages, data.labels, trainSet, testSet);
-[trainImages, trainLabels, testImages, testLabels, trainSet, testSet] = sampleData4d(labeledImages, data.labels);
+[trainImages, trainLabels, testImages, testLabels, out.trainSet, out.testSet] = sampleData4d(labeledImages, data.labels);
 
-numTrainImages = numel(trainSet);
-numTestImages = numel(testSet);
+% compute feature with convolving & pooling
+out.softmaxXtrain = cnnComputeFeature(model, trainImages, runOptions);
+out.softmaxYtrain = trainLabels;
 
-% do convolution and pooling to train and test images, got pooled features
-pooledFeaturesTrain = zeros(runOptions.hiddenSize, numTrainImages, ...
-    floor((runOptions.imageDim - runOptions.patchDim + 1) / runOptions.poolDim), ...
-    floor((runOptions.imageDim - runOptions.patchDim + 1) / runOptions.poolDim) );
-pooledFeaturesTest = zeros(runOptions.hiddenSize, numTestImages, ...
-    floor((runOptions.imageDim - runOptions.patchDim + 1) / runOptions.poolDim), ...
-    floor((runOptions.imageDim - runOptions.patchDim + 1) / runOptions.poolDim) );
-
-%tic();
-
-disp('convolving & pooling for features...');
-
-for convPart = 1:(runOptions.hiddenSize / runOptions.stepSize)
-    
-    featureStart = (convPart - 1) * runOptions.stepSize + 1;
-    featureEnd = convPart * runOptions.stepSize;
-    
-    fprintf('Step %d: features %d to %d\n', convPart, featureStart, featureEnd);  
-    Wt = W(featureStart:featureEnd, :);
-    bt = b(featureStart:featureEnd);
-    
-    fprintf('Convolving and pooling train images\n');
-    convolvedFeaturesThis = cnnConvolve(runOptions.patchDim, runOptions.stepSize, ...
-        trainImages, Wt, bt, ZCAWhite, meanPatch);
-    pooledFeaturesThis = cnnPool(runOptions.poolDim, convolvedFeaturesThis);
-    pooledFeaturesTrain(featureStart:featureEnd, :, :, :) = pooledFeaturesThis;   
-    %toc();
-    clear convolvedFeaturesThis pooledFeaturesThis;
-    
-    fprintf('Convolving and pooling test images\n');
-    convolvedFeaturesThis = cnnConvolve(runOptions.patchDim, runOptions.stepSize, ...
-        testImages, Wt, bt, ZCAWhite, meanPatch);
-    pooledFeaturesThis = cnnPool(runOptions.poolDim, convolvedFeaturesThis);
-    pooledFeaturesTest(featureStart:featureEnd, :, :, :) = pooledFeaturesThis;   
-    %toc();
-
-    clear convolvedFeaturesThis pooledFeaturesThis;
+if runOptions.save
+    disp('saving features')
+    save([runOption.dataDir '/cnnPooledFeaturesChairs.mat'], 'out');
+	disp('saving model')
 end
-
-disp('convolving & pooling for features finished');
-
-out.pooledFeaturesTrain = pooledFeaturesTrain;
-out.pooledFeaturesTest = pooledFeaturesTest;
-
-disp('saving')
-save('../../../data/cnnPooledFeaturesChairs.mat', 'pooledFeaturesTrain', 'pooledFeaturesTest');
 
 % train classifier using pooled features
 addpath ../../UFLDL/softmax_exercise
 
-% Reshape the pooledFeatures to form an input vector for softmax
-softmaxXtrain = permute(pooledFeaturesTrain, [1 3 4 2]);
-softmaxXtrain = reshape(softmaxXtrain, numel(pooledFeaturesTrain) / numTrainImages,...
-    numTrainImages);
-softmaxYtrain = trainLabels;
-
+disp('training softmax...');
 options = struct;
 options.maxIter = runOptions.softmaxIter;
 
+numTrainImages = size(trainImages, 4);
+inputSize = numel(out.softmaxXtrain) / numTrainImages;
 
-disp('training softmax...');
-softmaxModel = softmaxTrain(numel(pooledFeaturesTrain) / numTrainImages,...
-    runOptions.numClasses, runOptions.softmaxLambda, softmaxXtrain, softmaxYtrain, options);
+model.softmaxModel = softmaxTrain(inputSize,...
+    runOptions.numClasses, runOptions.softmaxLambda, out.softmaxXtrain, out.softmaxYtrain, options);
 disp('training softmax finished');
 
 % show key params
@@ -153,21 +113,20 @@ sprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, num
 
 % test classifier
 disp('predicting for test data')
-softmaxXtest = permute(pooledFeaturesTest, [1 3 4 2]);
-softmaxXtest = reshape(softmaxXtest, numel(pooledFeaturesTest) / numTestImages, numTestImages);
-softmaxYtest = testLabels;
+out.softmaxXtest = cnnComputeFeature(model, testImages, runOptions);
+out.softmaxYtest = testLabels;
 
-[predTest] = softmaxPredict(softmaxModel, softmaxXtest);
-accTest = (predTest(:) == softmaxYtest(:));
+[predTest] = softmaxPredict(model.softmaxModel, out.softmaxXtest);
+accTest = (predTest(:) == out.softmaxYtest(:));
 accTest = sum(accTest) / size(accTest, 1);
 fprintf('Accuracy: %2.3f%%\n', accTest * 100);
 
 % test on all examples
 disp('predicting for all data')
-softmaxXall = [softmaxXtrain softmaxXtest];
+softmaxXall = [out.softmaxXtrain out.softmaxXtest];
 softmaxYall = [trainLabels; testLabels];
 
-[predAll] = softmaxPredict(softmaxModel, softmaxXall);
+[predAll] = softmaxPredict(model.softmaxModel, softmaxXall);
 accAll = (predAll(:) == softmaxYall(:));
 accAll = sum(accAll) / size(accAll, 1);
 fprintf('Accuracy on all: %2.3f%%\n', accAll * 100);
