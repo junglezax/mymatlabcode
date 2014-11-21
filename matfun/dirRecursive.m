@@ -1,4 +1,4 @@
-function fs = dirRecursive(path, depth)
+function fsnames = dirRecursive(path, depth)
     if ~exist('depth', 'var')
         depth = 0;
         usedepth = false;
@@ -7,37 +7,30 @@ function fs = dirRecursive(path, depth)
     end
 
     if usedepth && depth == 0
-        fs = [];
+        fsnames = {};
         return
     end
-    
-    disp(depth)
-    disp(usedepth)
 
     fst = dir(path);
-	fs = [];
+	fsnames = {};
 	for i = 3:numel(fst)
         f = fst(i);
 		fn = [path '/' f.name];
 		%f.isdir
 		if f.isdir
             if usedepth
-                nextfs = dirRecursive(fn, depth-1);
+                nextfnames = dirRecursive(fn, depth-1);
             else
-                nextfs = dirRecursive(fn);
+                nextfnames = dirRecursive(fn);
             end
             
-			fs = [fs nextfs];
+			fsnames = [fsnames nextfnames];
 		else
-			fs = [fs f];
+			fsnames = [fsnames fn];
 		end
     end
 end
 
-% disp all names:
-% arrayfun(@(x) disp(x.name), fs);
-% or get all names:
-% fnames = arrayfun(@(x) {x.name}, fs);
-% and then display them:
+% to display:
 % dispCells(fnames)
 
