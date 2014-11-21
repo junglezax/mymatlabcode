@@ -59,9 +59,13 @@ function options = getParam()
 	options.lambda = 3e-3;         % weight decay parameter       
 	options.beta = 5;              % weight of sparsity penalty term       
 	options.epsilon = 0.1;	       % epsilon for ZCA whitening
-	options.numClasses = 12;
 	options.softmaxLambda = 1e-4;
+	options.labelLevel = 1;
+	options.numClasses = code2label(options.labelLevel);
 	options.imgBaseDir = '';
+	
+	assert(mod(options.hiddenSize, options.stepSize) == 0, 'stepSize should divide hiddenSize');
+	assert(mod((options.imageDim - options.patchDim + 1), options.poolDim) == 0, 'poolDim should divide (imageDim - patchDim + 1)');
 end
 
 % --- Executes just before cbires is made visible.
@@ -131,9 +135,6 @@ end
 %% ==========================================================================
 % --- Executes on selection change in popupmenu_DistanceFunctions.
 function popupmenu_DistanceFunctions_Callback(hObject, eventdata, handles)
-	% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu_DistanceFunctions contents as cell array
-	%        contents{get(hObject,'Value')} returns selected item from popupmenu_DistanceFunctions
-
 	handles.DistanceFunctions = get(handles.popupmenu_DistanceFunctions, 'Value');
 	guidata(hObject, handles);
 end
@@ -141,8 +142,6 @@ end
 %% ==========================================================================
 % --- Executes during object creation, after setting all properties.
 function popupmenu_DistanceFunctions_CreateFcn(hObject, eventdata, handles)
-	% Hint: popupmenu controls usually have a white background on Windows.
-	%       See ISPC and COMPUTER.
 	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
 		set(hObject,'BackgroundColor','white');
 	end
@@ -151,9 +150,6 @@ end
 %% ==========================================================================
 % --- Executes on selection change in popupmenu_NumOfReturnedImages.
 function popupmenu_NumOfReturnedImages_Callback(hObject, eventdata, handles)
-	% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu_NumOfReturnedImages contents as cell array
-	%        contents{get(hObject,'Value')} returns selected item from popupmenu_NumOfReturnedImages
-
 	handles.numOfReturnedImages = get(handles.popupmenu_NumOfReturnedImages, 'Value');
 	guidata(hObject, handles);
 end
@@ -161,12 +157,6 @@ end
 %% ==========================================================================
 % --- Executes during object creation, after setting all properties.
 function popupmenu_NumOfReturnedImages_CreateFcn(hObject, eventdata, handles)
-	% hObject    handle to popupmenu_NumOfReturnedImages (see GCBO)
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    empty - handles not created until after all CreateFcns called
-
-	% Hint: popupmenu controls usually have a white background on Windows.
-	%       See ISPC and COMPUTER.
 	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
 		set(hObject,'BackgroundColor','white');
 	end
@@ -393,7 +383,7 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
 		guidata(hObject, handles);
 		
 		% prompt to save dataset
-		uisave({'featureSet'}, 'features');
+		uisave({'featureSet'}, '../../../data/features.mat');
 	end
 	
 	disp('creating db finished');
@@ -484,26 +474,25 @@ end
 
 % --- Executes on selection change in selClassifyAlg.
 function selClassifyAlg_Callback(hObject, eventdata, handles)
-% hObject    handle to selClassifyAlg (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+    handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
+	guidata(hObject, handles);
 
-% Hints: contents = cellstr(get(hObject,'String')) returns selClassifyAlg contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from selClassifyAlg
+    if handles.classifyAlg ~= 1
+        set(handles.btnSelLabeledDir, 'Enable', 'on');
+        set(handles.btnTrainClassifier, 'Enable', 'on');
+        set(handles.btnTestClassifier, 'Enable', 'on');
+    else
+        set(handles.btnSelLabeledDir, 'Enable', 'off');
+        set(handles.btnTrainClassifier, 'Enable', 'off');
+        set(handles.btnTestClassifier, 'Enable', 'off');
+    end
 end
 
 % --- Executes during object creation, after setting all properties.
 function selClassifyAlg_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to selClassifyAlg (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 end
 
 % --- Executes on button press in btnComputeFeatures.
@@ -577,8 +566,6 @@ function btnLoadModel_Callback(hObject, eventdata, handles)
 end
 
 function info_Callback(hObject, eventdata, handles)
-% Hints: get(hObject,'String') returns contents of info as text
-%        str2double(get(hObject,'String')) returns contents of info as a double
 end
 
 % --- Executes during object creation, after setting all properties.
