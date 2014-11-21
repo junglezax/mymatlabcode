@@ -13,6 +13,7 @@ function [images, img_resized, x, labels, fns, bad] = read_chairs_img(imgDir, im
 		imageDim = 64;
 	end
 	
+	% labelLevel==0 for unlabeled
 	if ~exist('labelLevel', 'var')
 		labelLevel = 2;
 	end
@@ -26,11 +27,14 @@ function [images, img_resized, x, labels, fns, bad] = read_chairs_img(imgDir, im
 	fns = {};
 	bad = {};
 
-	dirs = dir(imgDir);
-	dirs = dirs(3:end);
-	m = numel(dirs);
+	fnames = dirRecursive(imgDir);
+	m = numel(fs);
 	
-	labels = zeros(1, m);
+	if labelLevel ~= 0
+		labels = zeros(1, m);
+	else
+		labels = [];
+	end
 	
 	idx = 0;
 	
@@ -43,19 +47,21 @@ function [images, img_resized, x, labels, fns, bad] = read_chairs_img(imgDir, im
 	end
 	
 	fprintf('reading images from %s\n', imgDir);
-	for i = 1:m
-		fn = [imgDir dirs(i).name];
-		if strcmp(getExt(dirs(i).name), 'xls')
+	for fn = fnames
+		if ~ismember(lower(getExt(fn)), acceptExts)
 			continue;
 		end
 		
-		labelCode = dirs(i).name(1:4);
-		theLabel = code2label(labelLevel, labelCode);
-        if ~(numel(theLabel) == 1 && theLabel > 0)
-			sprintf('bad label: %s for %s', labelCode, fn);
-			bad = [bad [fn '--bad label']];
-			continue;
-	    end
+		if labelLevel ~= 0
+			simpleFn = removeExt(fn);
+			labelCode = simpleFn(1:4);
+			theLabel = code2label(labelLevel, labelCode);
+			if ~(numel(theLabel) == 1 && theLabel > 0)
+				sprintf('bad label: %s for %s', labelCode, fn);
+				bad = [bad [fn '--bad label']];
+				continue;
+			end
+		end
 
 		if verbose
 			fprintf('reading image %s\n', fn);
@@ -95,12 +101,18 @@ function [images, img_resized, x, labels, fns, bad] = read_chairs_img(imgDir, im
 		
 		x(:, idx) = b(:);
 		fns{idx} = fn;
-		labels(idx) = theLabel;
+		
+		if labelLevel ~= 0
+			labels(idx) = theLabel;
+		end
 	end
 	
 	toDel = idx+1:m;
-	labels(toDel) = [];
 	x(:, toDel) = [];
+	
+	if labelLevel ~= 0
+		labels(toDel) = [];
+	end
 	
 	fprintf('read...%d\n', numel(fns));
 	fprintf('bad...%d\n', numel(bad));
