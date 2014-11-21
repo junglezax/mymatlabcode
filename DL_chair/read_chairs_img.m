@@ -1,4 +1,4 @@
-function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir, imageDim, toGray, labelLevel, verbose)
+function [images, img_resized, x, labels, fns, bad] = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose)
 % read labeled furniture images
 
 	if ~exist('imageDim', 'var')
@@ -21,6 +21,8 @@ function [images, img_resized, x, labels, fns, bad] = read_labeled_chairs(imgDir
 		verbose = false;
 	end
 
+	acceptExts = {'png', 'jpg'};
+	
 	fns = {};
 	bad = {};
 

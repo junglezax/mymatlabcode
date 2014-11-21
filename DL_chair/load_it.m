@@ -55,7 +55,7 @@ if strcmp(options.dataFrom, 'read')
 			d = [options.imgBaseDir d];
 		end
 		
-		[images1, img_resized1, x1, labels1, fns1, bad1] = read_labeled_chairs(d, options.imageDim, false, options.labelLevel, false);
+		[images1, img_resized1, x1, labels1, fns1, bad1] = read_chairs_img(d, options.imageDim, false, options.labelLevel, false);
 		goodCnt(i) = numel(fns1);
 		badCnt(i) = numel(bad1);
 		[images, img_resized, x, labels, fns, bad] = merge_chairs_data(images, img_resized, x, labels, fns, bad, images1, img_resized1, x1, labels1, fns1, bad1);
