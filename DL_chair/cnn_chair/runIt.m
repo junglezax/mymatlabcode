@@ -18,7 +18,7 @@ visibleSize = runOptions.patchDim * runOptions.patchDim * runOptions.imageChanne
 
 % load images
 if ~strcmp(dataFrom, 'none')
-	data = load_it(runOptions);
+	data = load_it(runOptions.imgDir, runOptions, true);
 end
 
 % sample train images to train patches for train AE

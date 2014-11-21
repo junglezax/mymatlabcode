@@ -18,7 +18,7 @@ options.softmaxLambda = 1e-4;
 options.save = false;
 
 %imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11', 'msmp12', 'msmp13', 'msmp14'};
-options.imgDir = '../../../images/chairs';
+options.imgDir = '../../../images/chairs'; % maybe not used
 options.dataDir = '../../../data';
 
 % for debug

@@ -22,7 +22,7 @@ function varargout = cbires(varargin)
 
 	% Edit the above text to modify the response to help cbires
 
-	% Last Modified by GUIDE v2.5 09-Nov-2014 17:20:46
+	% Last Modified by GUIDE v2.5 21-Nov-2014 23:37:24
 
 	% Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -44,30 +44,6 @@ function varargout = cbires(varargin)
 end
 % End initialization code - DO NOT EDIT
 
-function options = getParam()
-	options = struct;
-	options.imageDim = 67;
-	options.patchDim = 8;
-	options.poolDim = 10;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
-	options.imageChannels = 3;     % number of channels (rgb, so 3)
-	options.numPatches = 100;   % number of patches
-	options.maxIter = 40;
-	options.softmaxIter = 20;
-	options.hiddenSize  = 30;           % number of hidden units
-	options.stepSize = 10;			% hiddenSize / stepSize = int
-	options.sparsityParam = 0.035; % desired average activation of the hidden units.
-	options.lambda = 3e-3;         % weight decay parameter       
-	options.beta = 5;              % weight of sparsity penalty term       
-	options.epsilon = 0.1;	       % epsilon for ZCA whitening
-	options.softmaxLambda = 1e-4;
-	options.labelLevel = 1;
-	options.numClasses = code2label(options.labelLevel);
-	options.imgBaseDir = '';
-	
-	assert(mod(options.hiddenSize, options.stepSize) == 0, 'stepSize should divide hiddenSize');
-	assert(mod((options.imageDim - options.patchDim + 1), options.poolDim) == 0, 'poolDim should divide (imageDim - patchDim + 1)');
-end
-
 % --- Executes just before cbires is made visible.
 function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
 	% This function has no output args, see OutputFcn.
@@ -79,11 +55,15 @@ function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
 	% Choose default command line output for cbires
 	handles.modelput = hObject;
 
-	handles.options = getParam();
+	handles.options = cnnOptions();
 	
-	handles.unlabeledDir = '../../../images/chair_labeled_97_png';
-	handles.retrievalDir = '../../../images/chair_labeled_97_png';
+	handles.unlabeledDir = '../../../images/chairs/png97';
+	handles.retrievalDir = handles.unlabeledDir;
+    handles.labeledDir = handles.unlabeledDir;
+    handles.numOfReturnedImages = 10;
 	
+    set(handles.info, 'String', ['unlabeled dir: ', handles.unlabeledDir]);
+
 	% Update handles structure
 	guidata(hObject, handles);
 
@@ -106,7 +86,9 @@ end
 %% ==========================================================================
 % --- Executes on button press in btn_BrowseImage.
 function btn_BrowseImage_Callback(hObject, eventdata, handles)
-	[query_fname, query_pathname] = uigetfile('*.jpg; *.png; *.bmp', 'Select query image');
+    filterSpec = sprintf('%s/*.jpg', handles.options.imgDir);
+    %filterSpec = sprintf('%s/*.jpg; %s/*.png; %s/*.bmp', handles.options.imgDir, handles.options.imgDir, handles.options.imgDir);
+	[query_fname, query_pathname] = uigetfile(filterSpec, 'Select query image');
 
 	if (query_fname ~= 0)
 		query_fullpath = strcat(query_pathname, query_fname);
@@ -148,21 +130,6 @@ function popupmenu_DistanceFunctions_CreateFcn(hObject, eventdata, handles)
 end
 
 %% ==========================================================================
-% --- Executes on selection change in popupmenu_NumOfReturnedImages.
-function popupmenu_NumOfReturnedImages_Callback(hObject, eventdata, handles)
-	handles.numOfReturnedImages = get(handles.popupmenu_NumOfReturnedImages, 'Value');
-	guidata(hObject, handles);
-end
-
-%% ==========================================================================
-% --- Executes during object creation, after setting all properties.
-function popupmenu_NumOfReturnedImages_CreateFcn(hObject, eventdata, handles)
-	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-		set(hObject,'BackgroundColor','white');
-	end
-end
-
-%% ==========================================================================
 % --- Executes on button press in btnExecuteQuery.
 function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	% check for image query
@@ -177,22 +144,9 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 		return;
 	end
 
-	% set variables
-	if (~isfield(handles, 'DistanceFunctions') && ~isfield(handles, 'numOfReturnedImages'))
-		metric = get(handles.popupmenu_DistanceFunctions, 'Value');
-		numOfReturnedImgs = get(handles.popupmenu_NumOfReturnedImages, 'Value');
-	elseif (~isfield(handles, 'DistanceFunctions') || ~isfield(handles, 'numOfReturnedImages'))
-		if (~isfield(handles, 'DistanceFunctions'))
-			metric = get(handles.popupmenu_DistanceFunctions, 'Value');
-			numOfReturnedImgs = handles.numOfReturnedImages;
-		else
-			metric = handles.DistanceFunctions;
-			numOfReturnedImgs = get(handles.popupmenu_NumOfReturnedImages, 'Value');
-		end
-	else
-		metric = handles.DistanceFunctions;
-		numOfReturnedImgs = handles.numOfReturnedImages;
-	end
+    getNumOfReturnedImages(hObject, handles);
+    metric = get(handles.popupmenu_DistanceFunctions, 'Value');
+    handles.DistanceFunctions = metric;
 
 	queryImage = preprocessImage1(handles.queryImage, handles.options.imageDim);
 	% extract query image features
@@ -216,11 +170,11 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	assignin('base', 'queryImageFeature', handles.queryImageFeature);
 
 	if (metric == 1)
-		idxs = L1(numOfReturnedImgs, handles.queryImageFeature, handles.featureSet(:, cls_idxs)); 
+		idxs = L1(handles.numOfReturnedImages, handles.queryImageFeature, handles.featureSet(:, cls_idxs)); 
 	elseif (metric == 2 || metric == 3 || metric == 4 || metric == 5 || metric == 6  || metric == 7 || metric == 8 || metric == 9 || metric == 10 || metric == 11)
-		idxs = L2(numOfReturnedImgs, handles.queryImageFeature, handles.featureSet(:, cls_idxs), metric);
+		idxs = L2(handles.numOfReturnedImages, handles.queryImageFeature, handles.featureSet(:, cls_idxs), metric);
 	else
-		idxs = relativeDeviation(numOfReturnedImgs, handles.queryImageFeature, handles.featureSet(:, cls_idxs));
+		idxs = relativeDeviation(handles.numOfReturnedImages, handles.queryImageFeature, handles.featureSet(:, cls_idxs));
 	end
 	plotReturnedImages(handles.queryImage, handles.retrievalData.img_resized, idxs, cls_idxs);
 end
@@ -320,7 +274,7 @@ end
 % --- Executes on button press in btnSelectImageDirectory.
 function btnSelectImageDirectory_Callback(hObject, eventdata, handles)
 	% select image directory
-	unlabeledDir = uigetdir(pwd, 'Select the directory of unlabeled images');
+	unlabeledDir = uigetdir(handles.options.imgDir, 'Select the directory of unlabeled images');
 	if ( unlabeledDir ~= 0 )
 		handles.unlabeledDir = unlabeledDir;
 		guidata(hObject, handles);
@@ -332,7 +286,7 @@ function btnSelectImageDirectory_Callback(hObject, eventdata, handles)
 end
 
 function btnSelLabeledDir_Callback(hObject, eventdata, handles)
-	labeledDir = uigetdir(pwd, 'Select the directory of labeled images');
+	labeledDir = uigetdir(handles.options.imgDir, 'Select the directory of labeled images');
 	if ( labeledDir ~= 0 )
 		handles.labeledDir = labeledDir;
 		guidata(hObject, handles);
@@ -345,7 +299,7 @@ end
 
 % --- Executes on button press in btnSelRetrievalDir.
 function btnSelRetrievalDir_Callback(hObject, eventdata, handles)
-    retrievalDir = uigetdir(pwd, 'Select the directory of images to retrieve from');
+    retrievalDir = uigetdir(handles.options.imgDir, 'Select the directory of images to retrieve from');
 	if ( retrievalDir ~= 0 )
 		handles.retrievalDir = retrievalDir;
 		guidata(hObject, handles);
@@ -496,6 +450,7 @@ function selClassifyAlg_CreateFcn(hObject, eventdata, handles)
 end
 
 % --- Executes on button press in btnComputeFeatures.
+% just compute linear AE
 function btnComputeFeatures_Callback(hObject, eventdata, handles)
 	if (~isfield(handles, 'unlabeledDir'))
 		errordlg('Please select dir of unlabeled images!');
@@ -574,3 +529,21 @@ function info_CreateFcn(hObject, eventdata, handles)
 		set(hObject,'BackgroundColor','white');
 	end
 end
+
+function editNumOfReturnedImages_Callback(hObject, eventdata, handles)
+    getNumOfReturnedImages(hObject, handles);
+end
+
+function getNumOfReturnedImages(hObject, handles)
+    s = get(handles.editNumOfReturnedImages,'String');
+    handles.numOfReturnedImages = str2double(s);
+    guidata(hObject, handles);
+end
+
+% --- Executes during object creation, after setting all properties.
+function editNumOfReturnedImages_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+

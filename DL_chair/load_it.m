@@ -1,6 +1,14 @@
-function data = load_it(options)
+function data = load_it(imgDir, options, labeled)
 if ~exist('options', 'var')
 	options = struct;
+end
+
+if ~exist('labeled', 'var')
+	labeled = true;
+end
+
+if ~exist('imgDir', 'var')
+	options = '../../images/chairs';;
 end
 
 if ~isfield(options, 'imageDim')
@@ -23,14 +31,10 @@ if ~isfield(options, 'dataDir')
 	options.dataDir = '../../data';
 end
 
-if ~isfield(options, 'imgDir')
-	options.imgDir = '../../images/chairs';
-end
-
 saveName = sprintf('%s/chairs_labeled_%dx%d.mat', options.dataDir, options.imageDim, options.imageDim);
 
 if strcmp(options.dataFrom, 'read')
-	data = read_chairs_img(options.imgDir, options.imageDim, false, options.labelLevel, false);
+	data = read_chairs_img(imgDir, options.imageDim, false, options.labelLevel, false);
 
 	if options.save
 		disp('saving...')
