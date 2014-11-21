@@ -25,7 +25,7 @@ softmaxIter = 200;
 labelLevel = 1;
 numClasses = code2label(labelLevel);
 
-imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11', 'msmp12', 'msmp13'};
+imgDirs = {'png97', 'yes', 'msmp1', 'msmp2', 'msmp3', 'msmp4', 'msmp5', 'msmp6', 'msmp7', 'msmp8', 'msmp9', 'msmp10', 'msmp11', 'msmp12', 'msmp13', 'msmp14'};
 
 assert(mod(hiddenSize, stepSize) == 0, 'stepSize should divide hiddenSize');
 
