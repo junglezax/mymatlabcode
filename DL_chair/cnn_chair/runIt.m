@@ -105,6 +105,10 @@ model.softmaxModel = softmaxTrain(inputSize,...
     runOptions.numClasses, runOptions.softmaxLambda, out.softmaxXtrain, out.softmaxYtrain, options);
 disp('training softmax finished');
 
+disp('predicting for test data')
+out.softmaxXtest = cnnComputeFeature(model, testImages, runOptions);
+out.softmaxYtest = testLabels;
+
 % show key params
 sprintf('imgdir: %s\n', runOptions.imgDir);
 sprintf('imgCnt: %d\n', numel(data.fns));
@@ -112,10 +116,6 @@ sprintf('badCnt: %s\n', data.badCnt);
 sprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, numPatches=\n', runOptions.imageDim, runOptions.poolDim, runOptions.patchDim, runOptions.hiddenSize, runOptions.numClasses, runOptions.numPatches);
 
 % test classifier
-disp('predicting for test data')
-out.softmaxXtest = cnnComputeFeature(model, testImages, runOptions);
-out.softmaxYtest = testLabels;
-
 [predTest] = softmaxPredict(model.softmaxModel, out.softmaxXtest);
 accTest = (predTest(:) == out.softmaxYtest(:));
 accTest = sum(accTest) / size(accTest, 1);

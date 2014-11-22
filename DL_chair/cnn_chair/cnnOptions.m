@@ -1,7 +1,7 @@
 function options = cnnOptions()
 
-options.imageDim = 487;
-options.patchDim = 8;
+options.imageDim = 495;
+options.patchDim = 16;
 options.poolDim = 24;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 options.imageChannels = 3;     % number of channels (rgb, so 3)
 options.numPatches = 100000;   % number of patches
@@ -22,7 +22,7 @@ options.imgDir = '../../../images/chairs'; % maybe not used
 options.dataDir = '../../../data';
 
 % for debug
-if 1
+if 0
 options.imgDir = '../../../images/nope';
 options.imageDim = 15;
 options.patchDim = 4;
