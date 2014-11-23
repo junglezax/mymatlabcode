@@ -326,11 +326,14 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
 
 	if (numImages > 0)
 		imgData = cell2mat4d(handles.retrievalData.img_resized);
+		disp('computing features for retrieval iamges')
 		featureSet = cnnComputeFeature(handles.model, imgData, handles.options);
 		
-		useClassifier = false;
-		if useClassifier
-			% do classify
+		if handles.classifyAlg == 2
+            disp('predicting for retrieval features with softmax')
+            handles.predSet = softmaxPredict(handles.model.softmaxModel, featureSet);
+        else handles.classifyAlg == 3
+            error('predicting for retrieval features with svm not supported')
 		end
 		
 		handles.featureSet = featureSet;
