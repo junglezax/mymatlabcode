@@ -104,9 +104,10 @@ allLabels = [out.sampleOut.trainLabels; out.sampleOut.testLabels];
 
 
 % show key params
-sprintf('imgdir: %s\n', runOptions.imgDir);
-sprintf('imgCnt: %d\n', numel(data.fns));
-sprintf('badCnt: %s\n', data.badCnt);
-sprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, numPatches=\n', runOptions.imageDim, runOptions.poolDim, runOptions.patchDim, runOptions.hiddenSize, runOptions.numClasses, runOptions.numPatches);
+disp('show key params:');
+fprintf('imgdir: %s\n', runOptions.imgDir);
+fprintf('imgCnt: %d\n', numel(data.fns));
+fprintf('badCnt: %s\n', data.badCnt);
+fprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, numPatches=\n', runOptions.imageDim, runOptions.poolDim, runOptions.patchDim, runOptions.hiddenSize, runOptions.numClasses, runOptions.numPatches);
 
 end
