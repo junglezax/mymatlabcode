@@ -1,5 +1,12 @@
-function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose)
+function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose, labelOnly, data)
 % read furniture images
+	if ~exist('labelOnly', 'var')
+		labelOnly = false;
+	end
+
+	if ~exist('data', 'var')
+		data = struct;
+	end
 
 	if ~exist('imageDim', 'var')
 		imageDim = 64;
@@ -27,22 +34,23 @@ function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose)
 	fnames = dirRecursive(imgDir);
 	m = numel(fnames);
 	
-	data = struct;
-	data.fns = {};
-	data.bad = {};
-	data.img_resized = {};
-	data.images = {};
-
 	if labelLevel ~= 0
 		data.labels = zeros(1, m);
 	else
 		data.labels = [];
 	end
-	
-	if toGray
-		data.x = zeros(imageDim*imageDim, m);
-	else
-		data.x = zeros(imageDim*imageDim*3, m);
+
+	if ~labelOnly
+		data.fns = {};
+		data.bad = {};
+		data.img_resized = {};
+		data.images = {};
+		
+		if toGray
+			data.x = zeros(imageDim*imageDim, m);
+		else
+			data.x = zeros(imageDim*imageDim*3, m);
+		end
 	end
 	
 	idx = 0;
@@ -72,42 +80,44 @@ function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose)
             if mod(idx+1, 100) == 0, fprintf('\n'), end
 		end
 		
-		try
-			im = imread(fn);
-		catch err
-            errinfo = [fn '--' err.identifier];
-            fprintf('\n');
-			disp(errinfo);
-			data.bad = [data.bad errinfo];
-			continue;
+		if ~labelOnly
+			try
+				im = imread(fn);
+			catch err
+				errinfo = [fn '--' err.identifier];
+				fprintf('\n');
+				disp(errinfo);
+				data.bad = [data.bad errinfo];
+				continue;
+			end
+					
+			dim = numel(size(im));
+			
+			a = im;
+			
+			if dim ~= 3 & dim ~= 2
+				fprintf('\n');
+				errinfo = ['bad image size dim ' fn];
+				disp(errinfo);
+				disp(size(im));
+				data.bad = [data.bad errinfo];
+				continue;
+			elseif toGray & dim == 3
+				a = rgb2gray(im);
+			elseif ~toGray & dim == 2
+				a = gray2rgb(im);
+			end
+			
+			idx = idx + 1;
+			data.images{idx} = im;
+			
+			b = imresize(a, [imageDim, imageDim]);
+			data.img_resized{idx} = b;
+			
+			data.x(:, idx) = b(:);
+			data.fns{idx} = fn;
 		end
-				
-		dim = numel(size(im));
-		
-		a = im;
-		
-		if dim ~= 3 & dim ~= 2
-            fprintf('\n');
-            errinfo = ['bad image size dim ' fn];
-			disp(errinfo);
-			disp(size(im));
-			data.bad = [data.bad errinfo];
-			continue;
-		elseif toGray & dim == 3
-			a = rgb2gray(im);
-		elseif ~toGray & dim == 2
-			a = gray2rgb(im);
-		end
-		
-		idx = idx + 1;
-		data.images{idx} = im;
-		
-		b = imresize(a, [imageDim, imageDim]);
-		data.img_resized{idx} = b;
-		
-		data.x(:, idx) = b(:);
-		data.fns{idx} = fn;
-		
+
 		if labelLevel ~= 0
 			data.labels(idx) = theLabel;
 		end
