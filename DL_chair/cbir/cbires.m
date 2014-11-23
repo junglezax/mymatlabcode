@@ -86,7 +86,7 @@ end
 %% ==========================================================================
 % --- Executes on button press in btn_BrowseImage.
 function btn_BrowseImage_Callback(hObject, eventdata, handles)
-    filterSpec = sprintf('%s/*.jpg', handles.options.imgDir);
+    filterSpec = sprintf('%s/*.jpg; *.png', handles.options.imgDir);
     %filterSpec = sprintf('%s/*.jpg; %s/*.png; %s/*.bmp', handles.options.imgDir, handles.options.imgDir, handles.options.imgDir);
 	[query_fname, query_pathname] = uigetfile(filterSpec, 'Select query image');
 
@@ -101,6 +101,8 @@ function btn_BrowseImage_Callback(hObject, eventdata, handles)
 			handles.queryImage = queryImage;
 			guidata(hObject, handles);
 			
+            plotQueryImage(queryImage);
+            
 			helpdlg('Proceed with the query by executing the green button!');
 			
 			% Clear workspace
@@ -142,8 +144,8 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	if (~isfield(handles, 'featureSet'))
 		errordlg('Please load a dataset first. If you dont have one then you should consider creating one!');
 		return;
-	end
-
+    end
+    
     getNumOfReturnedImages(hObject, handles);
     metric = get(handles.popupmenu_DistanceFunctions, 'Value');
     handles.DistanceFunctions = metric;
@@ -153,13 +155,32 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	imgData = cell2mat4d({queryImage});
 	queryImageFeature = cnnComputeFeature(handles.model, imgData, handles.options);
 
-	useClassifier = false;
-	if useClassifier
+    handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
+	if handles.classifyAlg ~= 1
+        if (~isfield(handles, 'predSet'))
+            errordlg('Please load a gen prediction set first!');
+            return;
+        end
+    
 		% do classify
 		% classification
-		[pred] = softmaxPredict(handles.model.softmaxModel, queryImageFeature);
+        disp('predicting for query iamge...');
+        
+        pred = 0;
+        if handles.classifyAlg == 2
+            pred = softmaxPredict(handles.softmaxModel, queryImageFeature);
+        elseif handles.classifyAlg == 3
+            error('predicting for retrieval features with svm not supported')
+        end
+
+        fprintf('predicting result %d\n', pred);
+
+        newPred = confirmPred(queryImage, pred);
+        newPred = str2double(newPred{1});
+        
+        fprintf('newPred %d\n', newPred);
 		
-		cls_idxs = find(handles.labels == pred);
+		cls_idxs = find(handles.predSet == newPred);
     else
         cls_idxs = 1:size(handles.featureSet, 2);
 	end
@@ -316,7 +337,19 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
 	if (~isfield(handles, 'retrievalDir'))
 		errordlg('Please select an image directory for retrieving first!');
 		return;
-	end
+    end
+    
+    if (~isfield(handles, 'model'))
+		errordlg('Please compute model first!');
+		return;
+    end
+    
+    if handles.classifyAlg == 2
+        if (~isfield(handles, 'softmaxModel'))
+            errordlg('Please compute softmaxModel first!');
+            return;
+        end
+    end
 
 	disp('creating db...');
 	
@@ -326,18 +359,26 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
 
 	if (numImages > 0)
 		imgData = cell2mat4d(handles.retrievalData.img_resized);
+		disp('computing features for retrieval iamges')
 		featureSet = cnnComputeFeature(handles.model, imgData, handles.options);
 		
-		useClassifier = false;
-		if useClassifier
-			% do classify
+        handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
+
+        predSet = [];
+		if handles.classifyAlg == 2
+            disp('predicting for retrieval features with softmax')
+            predSet = softmaxPredict(handles.softmaxModel, featureSet);
+            handles.predSet = predSet;
+        elseif handles.classifyAlg == 3
+            error('predicting for retrieval features with svm not supported')
+            %handles.predSet = predSet;
 		end
 		
 		handles.featureSet = featureSet;
 		guidata(hObject, handles);
 		
 		% prompt to save dataset
-		uisave({'featureSet'}, '../../../data/features.mat');
+		uisave({'featureSet', 'predSet'}, '../../../data/features.mat');
 	end
 	
 	disp('creating db finished');
@@ -370,7 +411,7 @@ end
 function btnTrainClassifier_Callback(hObject, eventdata, handles)
 	handles.labeledData = load_it(handles.labeledDir, handles.options, true);
 	
-    [handles.model.softmaxModel, handles.sampleOut] = trainCnnSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
+    [handles.softmaxModel, handles.sampleOut] = trainCnnSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
 	guidata(hObject, handles);
 end
 
@@ -381,7 +422,7 @@ function btnTestClassifier_Callback(hObject, eventdata, handles)
     handles.testFeatures = cnnComputeFeature(handles.model, handles.sampleOut.testImages, handles.options);
 
 	disp('predicting for test data')
-    [accTest, predTest] = testSoftmax(handles.model.softmaxModel, handles.testFeatures, handles.sampleOut.testLabels);
+    [accTest, predTest] = testSoftmax(handles.softmaxModel, handles.testFeatures, handles.sampleOut.testLabels);
 
 	handles.accTest = accTest;
 	handles.predTest = predTest;

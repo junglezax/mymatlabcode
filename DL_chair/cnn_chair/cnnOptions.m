@@ -22,7 +22,7 @@ options.imgDir = '../../../images/chairs'; % maybe not used
 options.dataDir = '../../../data';
 
 % for debug
-if 0
+if 1
 options.imgDir = '../../../images/nope';
 options.imageDim = 15;
 options.patchDim = 4;

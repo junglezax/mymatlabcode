@@ -4,25 +4,7 @@
 
 sofmaxOptions和options分开
 
-guigetfile能否设置默认目录？
-	这样似乎不行
-filterSpec = sprintf('%s/*.jpg; %s/*.png; %s/*.bmp', handles.options.imgDir, handles.options.imgDir, handles.options.imgDir);
-	[query_fname, query_pathname] = uigetfile(filterSpec, 'Select query image');
-	
-	但这样又得选类型
-	[query_fname, query_pathname] = uigetfile(handles.options.imgDir, 'Select query image');
-	
-	只好暂时这样，
-	filterSpec = sprintf('%s/*.jpg', handles.options.imgDir);
-	只支持一种类型
-
 图库追加模式
 在线/增量计算
 
-function getNumOfReturnedImages(handles)
-    s = get(handles.numOfReturnedImages,'String'); 奇怪这里对象无效。。。原来是控件tag取名和变量名一样。。。太low的错误
-    handles.numOfReturnedImages = str2double(s);
-    guidata(hObject, handles);
-end
-
-cbires 画的不是原图
+弹出对话框中文乱码
