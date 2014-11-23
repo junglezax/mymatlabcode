@@ -1,11 +1,11 @@
 function options = cnnOptions()
 
-options.imageDim = 495;
-options.patchDim = 16;
+options.imageDim = 487;
+options.patchDim = 8;
 options.poolDim = 24;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 options.imageChannels = 3;     % number of channels (rgb, so 3)
 options.numPatches = 100000;   % number of patches
-options.hiddenSize  = 400;           % number of hidden units 
+options.hiddenSize  = 100;           % number of hidden units 
 options.stepSize = 10; % step size for cnnConvolve and pooling, hiddenSize / stepSize = int
 options.sparsityParam = 0.035; % desired average activation of the hidden units.
 options.lambda = 3e-3;         % weight decay parameter       
