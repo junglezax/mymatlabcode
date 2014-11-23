@@ -1,12 +1,5 @@
-function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose, labelOnly, data)
+function data = read_chairs_img(imgDir, imageDim, toGray, verbose)
 % read furniture images
-	if ~exist('labelOnly', 'var')
-		labelOnly = false;
-	end
-
-	if ~exist('data', 'var')
-		data = struct;
-	end
 
 	if ~exist('imageDim', 'var')
 		imageDim = 64;
@@ -20,11 +13,6 @@ function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose, l
 		imageDim = 64;
 	end
 	
-	% labelLevel==0 for unlabeled
-	if ~exist('labelLevel', 'var')
-		labelLevel = 2;
-	end
-	
 	if ~exist('verbose', 'var')
 		verbose = false;
 	end
@@ -34,24 +22,20 @@ function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose, l
 	fnames = dirRecursive(imgDir);
 	m = numel(fnames);
 	
-	if labelLevel ~= 0
-		data.labels = zeros(1, m);
+	data = struct;
+
+	% init data
+	data.fns = {};
+	data.bad = {};
+	data.img_resized = {};
+	data.images = {};
+	
+	if toGray
+		data.x = zeros(imageDim*imageDim, m);
 	else
-		data.labels = [];
+		data.x = zeros(imageDim*imageDim*3, m);
 	end
 
-	if ~labelOnly
-		data.fns = {};
-		data.bad = {};
-		data.img_resized = {};
-		data.images = {};
-		
-		if toGray
-			data.x = zeros(imageDim*imageDim, m);
-		else
-			data.x = zeros(imageDim*imageDim*3, m);
-		end
-	end
 	
 	idx = 0;
 	fprintf('reading images from %s\n', imgDir);
@@ -59,18 +43,6 @@ function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose, l
         fn = fnc{1};
 		if ~ismember(lower(getExt(fn)), acceptExts)
 			continue;
-		end
-		
-		if labelLevel ~= 0
-			simpleFn = removePath(fn);
-			labelCode = simpleFn(1:4);
-			theLabel = code2label(labelLevel, labelCode);
-			if ~(numel(theLabel) == 1 && theLabel > 0)
-				sprintf('\nbad label: %s for %s\n', labelCode, fn);
-                errinfo = [fn '--bad label'];
-				data.bad = [data.bad errinfo];
-				continue;
-			end
 		end
 
 		if verbose
@@ -80,56 +52,47 @@ function data = read_chairs_img(imgDir, imageDim, toGray, labelLevel, verbose, l
             if mod(idx+1, 100) == 0, fprintf('\n'), end
 		end
 		
-		if ~labelOnly
-			try
-				im = imread(fn);
-			catch err
-				errinfo = [fn '--' err.identifier];
-				fprintf('\n');
-				disp(errinfo);
-				data.bad = [data.bad errinfo];
-				continue;
-			end
-					
-			dim = numel(size(im));
-			
-			a = im;
-			
-			if dim ~= 3 & dim ~= 2
-				fprintf('\n');
-				errinfo = ['bad image size dim ' fn];
-				disp(errinfo);
-				disp(size(im));
-				data.bad = [data.bad errinfo];
-				continue;
-			elseif toGray & dim == 3
-				a = rgb2gray(im);
-			elseif ~toGray & dim == 2
-				a = gray2rgb(im);
-			end
-			
-			idx = idx + 1;
-			data.images{idx} = im;
-			
-			b = imresize(a, [imageDim, imageDim]);
-			data.img_resized{idx} = b;
-			
-			data.x(:, idx) = b(:);
-			data.fns{idx} = fn;
+		% read images
+		try
+			im = imread(fn);
+		catch err
+			errinfo = [fn '--' err.identifier];
+			fprintf('\n');
+			disp(errinfo);
+			data.bad = [data.bad errinfo];
+			continue;
 		end
-
-		if labelLevel ~= 0
-			data.labels(idx) = theLabel;
+				
+		dim = numel(size(im));
+		
+		a = im;
+		
+		if dim ~= 3 & dim ~= 2
+			fprintf('\n');
+			errinfo = ['bad image size dim ' fn];
+			disp(errinfo);
+			disp(size(im));
+			data.bad = [data.bad errinfo];
+			continue;
+		elseif toGray & dim == 3
+			a = rgb2gray(im);
+		elseif ~toGray & dim == 2
+			a = gray2rgb(im);
 		end
+		
+		idx = idx + 1;
+		data.images{idx} = im;
+		
+		b = imresize(a, [imageDim, imageDim]);
+		data.img_resized{idx} = b;
+		
+		data.x(:, idx) = b(:);
+		data.fns{idx} = fn;
 	end
 	
 	toDel = idx+1:m;
 	data.x(:, toDel) = [];
-	
-	if labelLevel ~= 0
-		data.labels(toDel) = [];
-	end
-	
+
 	data.goodCnt = numel(data.fns);
 	data.badCnt = numel(data.bad);
 	

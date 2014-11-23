@@ -57,7 +57,7 @@ function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
 
 	handles.options = cnnOptions();
 	
-	handles.unlabeledDir = '../../../images/chairs/png97';
+	handles.unlabeledDir = handles.options.imgDir; %'../../../images/chairs/png97';
 	handles.retrievalDir = handles.unlabeledDir;
     handles.labeledDir = handles.unlabeledDir;
     handles.numOfReturnedImages = 10;
@@ -176,7 +176,7 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	else
 		idxs = relativeDeviation(handles.numOfReturnedImages, handles.queryImageFeature, handles.featureSet(:, cls_idxs));
 	end
-	plotReturnedImages(handles.queryImage, handles.retrievalData.img_resized, idxs, cls_idxs);
+	plotReturnedImages(handles.queryImage, handles.retrievalData.images, idxs, cls_idxs);
 end
 
 %% ==========================================================================
@@ -369,61 +369,22 @@ end
 % --- Executes on button press in btnTrainClassifier.
 function btnTrainClassifier_Callback(hObject, eventdata, handles)
 	handles.labeledData = load_it(handles.labeledDir, handles.options, true);
-	labeledImages = handles.labeledData.img_resized;
-	[trainImages, trainLabels, testImages, testLabels, trainSet, testSet] = sampleData4d(labeledImages, handles.labeledData.labels);
 	
-	handles.model.trainSet = trainSet;
-	handles.model.testSet = testSet;
-	handles.model.trainLabels = trainLabels;
-	handles.model.testLabels = testLabels;
-	
-	softmaxXTrain = cnnComputeFeature(handles.model, trainImages, handles.options);
-	softmaxYTrain = trainLabels;
-
-	options = struct;
-	options.maxIter = handles.options.softmaxIter;
-
-	disp('training softmax...');
-	softmaxModel = softmaxTrain(numel(pooledFeaturesTrain) / numTrainImages,...
-		handles.options.numClasses, handles.options.softmaxLambda, softmaxXtrain, softmaxYtrain, options);
-	disp('training softmax finished');
-	
-	handles.model.softmaxModel = softmaxModel;
+    [handles.model.softmaxModel, handles.sampleOut] = trainCnnSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
 	guidata(hObject, handles);
 end
 
 % --- Executes on button press in btnTestClassifier.
 function btnTestClassifier_Callback(hObject, eventdata, handles)
 	% test classifier
+    disp('computing features for test data')
+    handles.testFeatures = cnnComputeFeature(handles.model, handles.sampleOut.testImages, handles.options);
+
 	disp('predicting for test data')
-	
-	numTestImages = numel(handles.model.testSet);
-	
-	softmaxXtest = permute(handles.model.pooledFeaturesTest, [1 3 4 2]);
-	softmaxXtest = reshape(softmaxXtest, numel(handles.model.pooledFeaturesTest) / numTestImages, numTestImages);
-	softmaxYtest = handles.model.testLabels;
-	
-	handles.model.softmaxXtest = softmaxYtest;
+    [accTest, predTest] = testSoftmax(handles.model.softmaxModel, handles.testFeatures, handles.sampleOut.testLabels);
 
-	[predTest] = softmaxPredict(handles.model.softmaxModel, softmaxXtest);
-	accTest = (predTest(:) == softmaxYtest(:));
-	accTest = sum(accTest) / size(accTest, 1);
-	fprintf('Accuracy: %2.3f%%\n', accTest * 100);
-
-	% test on all examples
-	disp('predicting for all data')
-	softmaxXall = [handles.model.softmaxXtrain handles.model.softmaxXtest];
-	softmaxYall = [handles.model.trainLabels; handles.model.testLabels];
-
-	[predAll] = softmaxPredict(handles.model.softmaxModel, softmaxXall);
-	accAll = (predAll(:) == softmaxYall(:));
-	accAll = sum(accAll) / size(accAll, 1);
-	fprintf('Accuracy on all: %2.3f%%\n', accAll * 100);
-	
-	handles.model.accTest = accTest;
-	handles.model.accAll = accAll;
-	handles.model.predTest = predTest;
-	handles.model.predAll = predAll;
+	handles.accTest = accTest;
+	handles.predTest = predTest;
 end
 
 % --- Executes on selection change in selClassifyAlg.

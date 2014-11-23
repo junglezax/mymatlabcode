@@ -1,14 +1,9 @@
-function data = load_it(imgDir, options, labeled, labelOnly, data)
+function data = load_it(imgDir, options, labeled)
+% example
+% data = load_it('../../images/chairs', cnnOptions(), true)
+
 if ~exist('options', 'var')
 	options = struct;
-end
-
-if ~exist('labelOnly', 'var')
-	labelOnly = false;
-end
-
-if ~exist('data', 'var')
-	data = struct;
 end
 
 if ~exist('labeled', 'var')
@@ -16,7 +11,7 @@ if ~exist('labeled', 'var')
 end
 
 if ~exist('imgDir', 'var')
-	options = '../../images/chairs';;
+	options = '../../images/chairs';
 end
 
 if ~isfield(options, 'imageDim')
@@ -42,7 +37,17 @@ end
 saveName = sprintf('%s/chairs_labeled_%dx%d.mat', options.dataDir, options.imageDim, options.imageDim);
 
 if strcmp(options.dataFrom, 'read')
-	data = read_chairs_img(imgDir, options.imageDim, false, options.labelLevel, false, labelOnly, data);
+	data = read_chairs_img(imgDir, options.imageDim, false, false);
+	
+	if labeled
+		[data.labels data.badlabel] = loadLabels(data.fns, options.labelLevel);
+		badIdx = find(data.labels == 0);
+		data.labels(badIdx) = [];
+		data.fns(badIdx) = [];
+		data.img_resized(badIdx) = [];
+		data.images(badIdx) = [];
+		data.x(:, badIdx) = [];
+	end
 
 	if options.save
 		disp('saving...')
