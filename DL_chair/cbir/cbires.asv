@@ -144,8 +144,8 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	if (~isfield(handles, 'featureSet'))
 		errordlg('Please load a dataset first. If you dont have one then you should consider creating one!');
 		return;
-    end
-    
+	end
+
     getNumOfReturnedImages(hObject, handles);
     metric = get(handles.popupmenu_DistanceFunctions, 'Value');
     handles.DistanceFunctions = metric;
@@ -156,28 +156,19 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	queryImageFeature = cnnComputeFeature(handles.model, imgData, handles.options);
 
     handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
-	if handles.classifyAlg ~= 1
-        if (~isfield(handles, 'predSet'))
-            errordlg('Please load a gen prediction set first!');
-            return;
-        end
-    
+	if handles.classifyAlg ~= 0
 		% do classify
 		% classification
         disp('predicting for query iamge...');
         
-        pred = 0;
         if handles.classifyAlg == 2
-            pred = softmaxPredict(handles.softmaxModel, queryImageFeature);
-        elseif handles.classifyAlg == 3
-            error('predicting for retrieval features with svm not supported')
-        end
-
-        fprintf('predicting result %d\n', pred);
-
-        newPred = confirmPred(queryImage, pred);
-        newPred = str2double(newPred{1});
+            pred = softmaxPredict(handles.model.softmaxModel, queryImageFeature);
+        elseif
         
+        
+        fprintf('predicting result %d\n', pred);
+        
+        newPred = confirmPred(queryImage, pred);
         fprintf('newPred %d\n', newPred);
 		
 		cls_idxs = find(handles.predSet == newPred);
@@ -337,19 +328,7 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
 	if (~isfield(handles, 'retrievalDir'))
 		errordlg('Please select an image directory for retrieving first!');
 		return;
-    end
-    
-    if (~isfield(handles, 'model'))
-		errordlg('Please compute model first!');
-		return;
-    end
-    
-    if handles.classifyAlg == 2
-        if (~isfield(handles, 'softmaxModel'))
-            errordlg('Please compute softmaxModel first!');
-            return;
-        end
-    end
+	end
 
 	disp('creating db...');
 	
@@ -367,7 +346,7 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
         predSet = [];
 		if handles.classifyAlg == 2
             disp('predicting for retrieval features with softmax')
-            predSet = softmaxPredict(handles.softmaxModel, featureSet);
+            predSet = softmaxPredict(handles.model.softmaxModel, featureSet);
             handles.predSet = predSet;
         elseif handles.classifyAlg == 3
             error('predicting for retrieval features with svm not supported')
@@ -411,7 +390,7 @@ end
 function btnTrainClassifier_Callback(hObject, eventdata, handles)
 	handles.labeledData = load_it(handles.labeledDir, handles.options, true);
 	
-    [handles.softmaxModel, handles.sampleOut] = trainCnnSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
+    [handles.model.softmaxModel, handles.sampleOut] = trainCnnSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
 	guidata(hObject, handles);
 end
 
@@ -422,7 +401,7 @@ function btnTestClassifier_Callback(hObject, eventdata, handles)
     handles.testFeatures = cnnComputeFeature(handles.model, handles.sampleOut.testImages, handles.options);
 
 	disp('predicting for test data')
-    [accTest, predTest] = testSoftmax(handles.softmaxModel, handles.testFeatures, handles.sampleOut.testLabels);
+    [accTest, predTest] = testSoftmax(handles.model.softmaxModel, handles.testFeatures, handles.sampleOut.testLabels);
 
 	handles.accTest = accTest;
 	handles.predTest = predTest;
