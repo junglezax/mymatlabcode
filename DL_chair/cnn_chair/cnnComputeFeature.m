@@ -8,7 +8,7 @@ function x = cnnComputeFeature(model, images, options)
 	t = floor((options.imageDim - options.patchDim + 1) / options.poolDim);
 	pooledFeatures = zeros(options.hiddenSize, numImages, t, t);
 
-	fprintf('convolving & pooling for features...numImages=%d', numImages);
+	fprintf('convolving & pooling for features...numImages=%d\n', numImages);
 	
 	visibleSize = options.patchDim * options.patchDim * options.imageChannels;
 	W = reshape(model.optTheta(1:visibleSize * options.hiddenSize), options.hiddenSize, visibleSize);
