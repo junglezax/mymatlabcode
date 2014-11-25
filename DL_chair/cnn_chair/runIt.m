@@ -105,7 +105,7 @@ allLabels = [out.sampleOut.trainLabels; out.sampleOut.testLabels];
 disp('show key params:');
 fprintf('imgdir: %s\n', runOptions.imgDir);
 fprintf('imgCnt: %d\n', numel(data.fns));
-fprintf('badCnt: %s\n', data.badCnt);
+fprintf('badCnt: %d\n', data.badCnt);
 fprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, numPatches=\n', runOptions.imageDim, runOptions.poolDim, runOptions.patchDim, runOptions.hiddenSize, runOptions.numClasses, runOptions.numPatches);
 
 end

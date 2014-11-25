@@ -5,7 +5,7 @@ options.patchDim = 8;
 options.poolDim = 24;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 options.imageChannels = 3;     % number of channels (rgb, so 3)
 options.numPatches = 100000;   % number of patches
-options.hiddenSize  = 20;           % number of hidden units 
+options.hiddenSize  = 10;           % number of hidden units 
 options.stepSize = 10; % step size for cnnConvolve and pooling, hiddenSize / stepSize = int
 options.sparsityParam = 0.035; % desired average activation of the hidden units.
 options.lambda = 3e-3;         % weight decay parameter       
@@ -22,7 +22,7 @@ options.imgDir = '../../../images/chairs'; % maybe not used
 options.dataDir = '../../../data';
 
 % for debug
-if 1
+if 0
 options.imgDir = '../../../images/nope';
 options.imageDim = 15;
 options.patchDim = 4;
