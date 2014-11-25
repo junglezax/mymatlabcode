@@ -45,7 +45,7 @@ theta = initializeParameters(runOptions.hiddenSize, visibleSize);
 options = struct;
 options.Method = 'lbfgs'; 
 options.maxIter = runOptions.maxIter;
-options.display = 'on';
+options.display = runOptions.display;
 
 disp('training linear encoder...');
 [optTheta, cost] = minFunc( @(p) sparseAutoencoderLinearCost(p, ...
