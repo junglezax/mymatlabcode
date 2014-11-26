@@ -1,4 +1,8 @@
-function options = cnnOptions()
+function options = cnnOptions(useSAE)
+
+if ~exist('useSAE', 'var')
+	useSAE = false;
+end
 
 options.imageDim = 487;
 options.patchDim = 8;
@@ -7,14 +11,18 @@ options.imageChannels = 3;     % number of channels (rgb, so 3)
 options.numPatches = 100000;   % number of patches
 options.hiddenSize  = 10;           % number of hidden units 
 options.stepSize = 10; % step size for cnnConvolve and pooling, hiddenSize / stepSize = int
+
 options.sparsityParam = 0.035; % desired average activation of the hidden units.
 options.lambda = 3e-3;         % weight decay parameter       
-options.beta = 5;              % weight of sparsity penalty term       
+options.beta = 5;              % weight of sparsity penalty term
+
 options.epsilon = 0.1;	       % epsilon for ZCA whitening
 options.maxIter = 400;
+
 options.softmaxIter = 200;
-options.labelLevel = 1;
 options.softmaxLambda = 1e-4;
+
+options.labelLevel = 1;
 options.save = false;
 options.display = 'Off';
 
@@ -22,8 +30,20 @@ options.display = 'Off';
 options.imgDir = '../../../images/chairs'; % maybe not used
 options.dataDir = '../../../data';
 
+options.classMethod = 'softmax'; % softmax/svm
+
+
+if useSAE
+options.sparsityParam = 0.1;
+options.beta = 3;
+options.softmaxIter = 100;
+
+options.hiddenSizeL1 = 100;
+options.hiddenSizeL2 = 100;
+end
+
 % for debug
-if 0
+if 1
 options.imgDir = '../../../images/nope';
 options.imageDim = 15;
 options.patchDim = 4;
