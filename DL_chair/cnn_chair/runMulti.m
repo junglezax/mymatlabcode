@@ -28,6 +28,6 @@ function [accTests, accAlls, useTimes, runOptions, model, out, data] = runMulti(
 	end
 	
 	fprintf('run %d times, average accTest=%%%.2f-std=%%%.2f, accAll=%%%.2f=std=%%%.2f\n', cnt, 100*mean(accTests), std(accTests), 100*mean(accAlls), std(accAlls));
-	fprintf('useTime=%fs=%fm=%fh, std=%f\n', cnt, 100*mean(accTests), 100*mean(accAlls), mean(useTimes), mean(useTimes)/60, mean(useTimes)/3600， std(useTimes));
+	fprintf('useTime=%fs=%fm=%fh, std=%f\n', cnt, 100*mean(accTests), 100*mean(accAlls), mean(useTimes), mean(useTimes)/60, mean(useTimes)/3600, std(useTimes));
 end
 
