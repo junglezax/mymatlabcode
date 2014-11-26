@@ -334,11 +334,6 @@ end
 %% ==========================================================================
 % --- Executes on button press in btnCreateDB.
 function btnCreateDB_Callback(hObject, eventdata, handles)
-    handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
-    if handles.classifyAlg == 3
-        error('predicting for retrieval features with svm not supported')
-    end
-        
 	if (~isfield(handles, 'retrievalDir'))
 		errordlg('Please select an image directory for retrieving first!');
 		return;
@@ -368,6 +363,8 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
 		disp('computing features for retrieval iamges')
 		featureSet = cnnComputeFeature(handles.model, imgData, handles.options);
 		
+        handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
+
         predSet = [];
 		if handles.classifyAlg == 2
             disp('predicting for retrieval features with softmax')
@@ -420,7 +417,6 @@ function btnTrainClassifier_Callback(hObject, eventdata, handles)
         [handles.softmaxModel, handles.sampleOut] = trainCnnSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
         guidata(hObject, handles);
     elseif handles.classifyAlg == 3
-        error('predicting for retrieval features with svm not supported')
     end
 end
 
