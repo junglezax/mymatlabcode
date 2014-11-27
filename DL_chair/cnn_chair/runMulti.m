@@ -12,7 +12,8 @@ function [accTests, accAlls, useTimes, runOptions, model, out, data] = runMulti(
 	accTests = zeros(1, cnt);
 	accAlls = zeros(1, cnt);
 	useTimes = zeros(1, cnt);
-	
+
+	fprintf('---------------------cycle %d------------------------\n', 1);
 	tic();
 	[accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt(dataFrom, data);
 	accTests(1) = accTest;
@@ -21,6 +22,7 @@ function [accTests, accAlls, useTimes, runOptions, model, out, data] = runMulti(
 	
 	for i = 2:cnt
 		tic();
+		fprintf('---------------------cycle %d------------------------\n', i);
 		[accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt('none', data);
 		accTests(i) = accTest;
 		accAlls(i) = accAll;
