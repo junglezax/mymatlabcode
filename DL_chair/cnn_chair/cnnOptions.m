@@ -17,9 +17,9 @@ options.lambda = 3e-3;         % weight decay parameter
 options.beta = 5;              % weight of sparsity penalty term
 
 options.epsilon = 0.1;	       % epsilon for ZCA whitening
-options.maxIter = 200;
+options.maxIter = 100;
 
-options.softmaxIter = 100;
+options.softmaxIter = 200;
 options.softmaxLambda = 1e-4;
 
 options.labelLevel = 1;
