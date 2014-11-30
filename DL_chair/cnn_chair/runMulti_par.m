@@ -8,7 +8,7 @@ function [accTests, accAlls] = runMulti_par(cnt, data)
 		data = load_it(runOptions.imgDir, runOptions, true);
 	end
 	
-	coreNum = 144;
+	coreNum = 12;
 	if matlabpool('size') <= 0
 		matlabpool('open', 'local', coreNum);
 	else
