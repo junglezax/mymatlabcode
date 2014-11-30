@@ -110,11 +110,14 @@ function btn_BrowseImage_Callback(hObject, eventdata, handles)
 			
             plotQueryImage(queryImage);
             
-			helpdlg('Proceed with the query by executing the green button!');
+			%helpdlg('Proceed with the query by executing the green button!');
 			
 			% Clear workspace
 			clear('query_fname', 'query_pathname', 'query_fullpath', 'pathstr', ...
 				'name', 'ext', 'queryImage');
+            
+            executeQuery(hObject, eventdata, handles);
+            
 		else
 			errordlg('You have not selected the correct file type');
 		end
@@ -139,8 +142,7 @@ function popupmenu_DistanceFunctions_CreateFcn(hObject, eventdata, handles)
 end
 
 %% ==========================================================================
-% --- Executes on button press in btnExecuteQuery.
-function btnExecuteQuery_Callback(hObject, eventdata, handles)
+function executeQuery(hObject, eventdata, handles)
 	% check for image query
 	if (~isfield(handles, 'queryImage'))
 		errordlg('Please select an image first, then choose your similarity metric and num of returned images!');
@@ -164,7 +166,7 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 
     handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
 	if handles.classifyAlg ~= 1
-        if (~isfield(handles, 'predSet'))
+        if (~isfield(handles.out, 'predSet'))
             errordlg('Please load a gen prediction set first!');
             return;
         end
