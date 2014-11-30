@@ -3,11 +3,6 @@ function [accTests, accAlls] = runMulti_par(cnt, data)
 	%        tic; [accTests, accAlls] = runMulti_par(2, data); toc
 	%        no-par version: tic; [accTests, ~, accAlls] = runMulti(2, 'none', data); toc
 	
-	if ~exist('data', 'var')
-		runOptions = cnnOptions();
-		data = load_it(runOptions.imgDir, runOptions, true);
-	end
-	
 	coreNum = 12;
 	if matlabpool('size') <= 0
 		matlabpool('open', 'local', coreNum);
@@ -19,7 +14,10 @@ function [accTests, accAlls] = runMulti_par(cnt, data)
 	accAlls = zeros(1, cnt);
 	useTimes = zeros(1, cnt);
     
-	
+	if ~exist('data', 'var')
+		runOptions = cnnOptions();
+		data = load_it(runOptions.imgDir, runOptions, true);
+	end	
 	
     data_small = rmfield(data, {'images', 'x'});
     
