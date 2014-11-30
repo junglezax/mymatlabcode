@@ -8,7 +8,7 @@ options.imageDim = 487;
 options.patchDim = 8;
 options.poolDim = 24;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 options.imageChannels = 3;     % number of channels (rgb, so 3)
-options.numPatches = 100000;   % number of patches
+options.numPatches = 20000;   % number of patches
 options.hiddenSize  = 20;           % number of hidden units 
 options.stepSize = 10; % step size for cnnConvolve and pooling, hiddenSize / stepSize = int
 
@@ -19,7 +19,7 @@ options.beta = 5;              % weight of sparsity penalty term
 options.epsilon = 0.1;	       % epsilon for ZCA whitening
 options.maxIter = 100;
 
-options.softmaxIter = 200;
+options.softmaxIter = 100;
 options.softmaxLambda = 1e-4;
 
 options.labelLevel = 1;
@@ -43,7 +43,7 @@ options.hiddenSizeL2 = 100;
 end
 
 % for debug
-if 1
+if 0
 options.imgDir = '../../../images/nope';
 options.imageDim = 15;
 options.patchDim = 4;
