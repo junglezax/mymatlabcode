@@ -24,7 +24,7 @@ function x = cnnComputeFeature(model, images, options)
 		
 		fprintf('Convolving and pooling images\n');
 		convolvedFeaturesThis = cnnConvolve(options.patchDim, stepSize, images, Wt, bt, model.ZCAWhite, model.meanPatch);
-		pooledFeaturesThis = cnnPool(options.poolDim, convolvedFeaturesThis);
+		pooledFeaturesThis = cnnPool_par(options.poolDim, convolvedFeaturesThis);
 		pooledFeatures(featureStart:featureEnd, :, :, :) = pooledFeaturesThis;
 		
 		clear convolvedFeaturesThis pooledFeaturesThis;
