@@ -1,9 +1,9 @@
 function [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt_par(dataFrom, data)
 % dataFrom: read, load, none
-% example: [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt();
-%          [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt('load');
-%          [accTest, predTest, accAll, predAll, runOptions, model, out] = runIt('none', data);
-%          tic; [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt(); usetime = toc
+% example: [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt_par();
+%          [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt_par('load');
+%          [accTest, predTest, accAll, predAll, runOptions, model, out] = runIt_par('none', data);
+%          tic; [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt_par(); usetime = toc
 
 if ~exist('dataFrom', 'var')
 	dataFrom = 'read';
