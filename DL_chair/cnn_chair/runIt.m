@@ -16,20 +16,27 @@ model = struct;
 runOptions = cnnOptions();
 visibleSize = runOptions.patchDim * runOptions.patchDim * runOptions.imageChannels;  % number of input units, also is outputSize
 
+tic;
 % load images
 if ~strcmp(dataFrom, 'none')
+	disp('loading images');
 	data = load_it(runOptions.imgDir, runOptions, true);
+	disp('finish loading images');
+	toc;
 end
 
 % sample train images to train patches for train AE
 disp('sampling patches from images...');
 patches = sampleIMAGES_color(data.img_resized, runOptions.patchDim, runOptions.numPatches);
 disp('sampling patches from images finished');
+toc;
 
 %displayColorNetwork(data.x(:, 1:9));
 %displayColorNetwork(patches(:, 1:81));
 
 % do ZCA
+disp('doing ZCA...');
+
 meanPatch = mean(patches, 2);
 patches = bsxfun(@minus, patches, meanPatch);
 
@@ -38,6 +45,9 @@ sigma = patches * patches' / runOptions.numPatches;
 [u, s, v] = svd(sigma);
 ZCAWhite = u * diag(1 ./ sqrt(diag(s) + runOptions.epsilon)) * u';
 patches = ZCAWhite * patches;
+
+disp('finish doing ZCA...');
+toc;
 
 % train linear AE, got feature filter matrix
 theta = initializeParameters(runOptions.hiddenSize, visibleSize);
@@ -54,6 +64,7 @@ disp('training linear encoder...');
                                    runOptions.beta, patches), ...
                               theta, options);
 disp('training linear encoder finished');
+toc;
 
 model.optTheta = optTheta;
 model.ZCAWhite = ZCAWhite;
@@ -63,6 +74,7 @@ if runOptions.save
 	fprintf('Saving LAE model\n');
 	save([options.dataDir '/chairLinearFeatures.mat'], 'model');
 	fprintf('Saved\n');
+	toc;
 end
 
 %load ../../../data/chair97LinearFeatures.mat
@@ -80,20 +92,29 @@ labeledImages = data.img_resized; % use same image set with feature extracting
 
 %[trainImages, trainLabels, testImages, testLabels] = sampleData4d(labeledImages, data.labels, trainSet, testSet);
 
+disp('training softmax...');
 [model.softmaxModel, out.sampleOut, out.trainFeatures] = trainCnnSoftmax(model, labeledImages, data.labels, runOptions);
+disp('training softmax finished');
+toc;
 
 if runOptions.save
-    disp('saving features')
+    disp('saving out')
     save([runOption.dataDir '/cnnPooledFeaturesChairs.mat'], 'out');
-	disp('saving model')
+	disp('finish saving out');
+	toc;
 end
 
 % test classifier
 disp('computing features for test data')
 out.testFeatures = cnnComputeFeature(model, out.sampleOut.testImages, runOptions);
+disp('finish computing features for test data');
+toc;
+
 
 disp('predicting for test data')
 [accTest, predTest] = testSoftmax(model.softmaxModel, out.testFeatures, out.sampleOut.testLabels);
+disp('finish predicting for test data')
+toc;
 
 % test on all examples
 disp('predicting for all data')
@@ -101,6 +122,8 @@ allFeatures = [out.trainFeatures out.testFeatures];
 allLabels = [out.sampleOut.trainLabels; out.sampleOut.testLabels];
 
 [accAll, predAll] = testSoftmax(model.softmaxModel, allFeatures, allLabels);
+disp('finish predicting for all data')
+toc;
 
 disp('show key params:');
 fprintf('imgdir: %s\n', runOptions.imgDir);

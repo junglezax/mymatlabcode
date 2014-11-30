@@ -22,7 +22,7 @@ function varargout = cbires(varargin)
 
 	% Edit the above text to modify the response to help cbires
 
-	% Last Modified by GUIDE v2.5 30-Nov-2014 12:54:44
+	% Last Modified by GUIDE v2.5 30-Nov-2014 14:34:07
 
 	% Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -211,7 +211,7 @@ function executeQuery(hObject, eventdata, handles)
 	else
 		idxs = relativeDeviation(handles.numOfReturnedImages, handles.queryImageFeature, handles.out.featureSet(:, cls_idxs));
 	end
-	plotReturnedImages(handles.queryImage, handles.retrievalData.images, idxs, cls_idxs);
+	plotReturnedImages(handles.queryImage, handles.retrievalData.images, idxs, cls_idxs, handles.retrievalData.fns);
 end
 
 %% ==========================================================================
@@ -586,4 +586,8 @@ function editNumOfReturnedImages_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+end
+
+function btnQuery_Callback(hObject, eventdata, handles)
+    executeQuery(hObject, eventdata, handles);
 end
