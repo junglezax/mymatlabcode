@@ -1,0 +1,1 @@
+function softmaxModel = trainSoftmax(trainFeatures, trainLabels, options)	sofmaxOptions = struct;	sofmaxOptions.maxIter = options.softmaxIter;	sofmaxOptions.display = options.display;	softmaxModel = softmaxTrain(size(trainFeatures, 1), options.numClasses, options.softmaxLambda, trainFeatures, trainLabels, sofmaxOptions);end

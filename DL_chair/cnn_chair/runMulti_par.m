@@ -1,5 +1,5 @@
 function [accTests, accAlls] = runMulti_par(cnt, data)
-	%example [accTests, accAlls] = runMulti_par(3);
+	%example [accTests, accAlls] = runMulti_par(2);
 	%        tic; [accTests, accAlls] = runMulti_par(2, data); toc
 	%        no-par version: tic; [accTests, ~, accAlls] = runMulti(2, 'none', data); toc
 	
