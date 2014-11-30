@@ -44,7 +44,7 @@ end
 
 % for debug
 if 0
-options.imgDir = '../../../images/nope';
+%options.imgDir = '../../../images/nope';
 options.imageDim = 15;
 options.patchDim = 4;
 options.poolDim = 4;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int

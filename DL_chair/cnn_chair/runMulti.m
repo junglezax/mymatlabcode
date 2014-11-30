@@ -1,5 +1,6 @@
 function [accTests, accAlls, useTimes, runOptions, model, out, data] = runMulti(cnt, dataFrom, data)
-	%example [accTests, accAlls, useTimes, runOptions, model, out, data] = runMulti(20);
+	%example [accTests, accAlls, useTimes, runOptions, model, out, data] = runMulti(3);
+	%        tic; [accTests, accAlls, useTimes, runOptions, model, out, data] = runMulti(3, 'none', data); toc
 	
 	if ~exist('dataFrom', 'var')
 		dataFrom = 'read';
@@ -29,7 +30,7 @@ function [accTests, accAlls, useTimes, runOptions, model, out, data] = runMulti(
 		useTimes(i) = toc();
 	end
 	
-	fprintf('run %d times, average accTest=%%%.2f-std=%%%.2f, accAll=%%%.2f=std=%%%.2f\n', cnt, 100*mean(accTests), std(accTests), 100*mean(accAlls), std(accAlls));
-	fprintf('useTime=%ds=%.2fm=%.2h, std=%f\n',mean(useTimes), mean(useTimes)/60, mean(useTimes)/3600, std(useTimes));
+	fprintf('run %d times, average accTest=%%%.2f-std=%%%.2f, accAll=%%%.2f-std=%%%.2f\n', cnt, 100*mean(accTests), std(accTests), 100*mean(accAlls), std(accAlls));
+	fprintf('useTime=%.0fs=%.2fm=%.2fh, std=%f\n',mean(useTimes), mean(useTimes)/60, mean(useTimes)/3600, std(useTimes));
 end
 
