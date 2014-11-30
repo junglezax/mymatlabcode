@@ -60,6 +60,7 @@ function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
 	handles.options.dataDir = [handles.options.dataDir, 'cbir/'];
     handles.outFilename = [handles.options.dataDir, 'out.mat'];
     handles.modelFilename = [handles.options.dataDir, 'model.mat'];
+    handles.retrievalDataFilename = [handles.options.dataDir, 'retrievalData.mat'];
     
     handles.out = struct;
     handles.model = struct;
@@ -513,6 +514,11 @@ function btnSaveModel_Callback(hObject, eventdata, handles)
     model = handles.model;
 	save(handles.modelFilename, 'model');
 	fprintf('model Saved\n');
+
+    fprintf('Saving retrievalData...\n');
+    retrievalData = handles.retrievalData;
+	save(handles.retrievalDataFilename, 'retrievalData');
+	fprintf('retrievalData Saved\n');
 end
 
 % --- Executes on button press in btnSaveFeaSet.
@@ -530,8 +536,15 @@ function btnLoadModel_Callback(hObject, eventdata, handles)
 	handles.model = t.model;
 	guidata(hObject, handles);
 	
-	%make dataset visible from workspace
 	assignin('base', 'model', handles.model);
+    
+    disp('loading retrievalData...');
+    t = load(handles.retrievalDataFilename);
+	handles.retrievalData = t.retrievalData;
+	guidata(hObject, handles);
+	
+	assignin('base', 'retrievalData', handles.model);
+    
 	helpdlg('model loaded successfuly!');
 end
 
