@@ -43,7 +43,7 @@ options.hiddenSizeL2 = 100;
 end
 
 % for debug
-if 0
+if 1
 options.imgDir = '../../../images/nope';
 options.imageDim = 15;
 options.patchDim = 4;

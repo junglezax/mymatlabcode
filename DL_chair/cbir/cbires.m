@@ -211,7 +211,7 @@ function executeQuery(hObject, eventdata, handles)
 	else
 		idxs = relativeDeviation(handles.numOfReturnedImages, handles.queryImageFeature, handles.out.featureSet(:, cls_idxs));
 	end
-	plotReturnedImages(handles.queryImage, handles.retrievalData.images, idxs, cls_idxs);
+	plotReturnedImages(handles.queryImage, handles.retrievalData.images, idxs, cls_idxs, handles.retrievalData.fns);
 end
 
 %% ==========================================================================
