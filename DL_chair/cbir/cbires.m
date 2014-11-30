@@ -22,7 +22,7 @@ function varargout = cbires(varargin)
 
 	% Edit the above text to modify the response to help cbires
 
-	% Last Modified by GUIDE v2.5 30-Nov-2014 11:48:00
+	% Last Modified by GUIDE v2.5 30-Nov-2014 12:54:44
 
 	% Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -181,14 +181,18 @@ function executeQuery(hObject, eventdata, handles)
         elseif handles.classifyAlg == 3
             error('predicting for retrieval features with svm not supported')
         end
-
+        
         fprintf('predicting result %d\n', pred);
 
         newPred = confirmPred(queryImage, pred);
         newPred = str2double(newPred{1});
         
         fprintf('newPred %d\n', newPred);
-		
+
+        if handles.classifyAlg ~= 1
+            set(handles.textClassifyResult, 'String', ['classify result£º', num2str(newPred)]);
+        end
+        
 		cls_idxs = find(handles.out.predSet == newPred);
     else
         cls_idxs = 1:size(handles.out.featureSet, 2);
@@ -570,5 +574,3 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 end
-
-
