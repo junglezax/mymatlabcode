@@ -25,45 +25,17 @@ softmaxTheta = reshape(theta(1:hiddenSize*numClasses), numClasses, hiddenSize);
 % Extract out the "stack"
 stack = params2stack(theta(hiddenSize*numClasses+1:end), netconfig);
 
-% You will need to compute the following gradients
-softmaxThetaGrad = zeros(size(softmaxTheta));
 stackgrad = cell(size(stack));
 for d = 1:numel(stack)
     stackgrad{d}.w = zeros(size(stack{d}.w));
     stackgrad{d}.b = zeros(size(stack{d}.b));
 end
 
-cost = 0; % You need to compute this
-
 % You might find these variables useful
-M = size(data, 2);
-groundTruth = full(sparse(labels, 1:M, 1));
-
-
-%% --------------------------- YOUR CODE HERE -----------------------------
-%  Instructions: Compute the cost function and gradient vector for 
-%                the stacked autoencoder.
-%
-%                You are given a stack variable which is a cell-array of
-%                the weights and biases for every layer. In particular, you
-%                can refer to the weights of Layer d, using stack{d}.w and
-%                the biases using stack{d}.b . To get the total number of
-%                layers, you can use numel(stack).
-%
-%                The last layer of the network is connected to the softmax
-%                classification layer, softmaxTheta.
-%
-%                You should compute the gradients for the softmaxTheta,
-%                storing that in softmaxThetaGrad. Similarly, you should
-%                compute the gradients for each layer in the stack, storing
-%                the gradients in stackgrad{d}.w and stackgrad{d}.b
-%                Note that the size of the matrices in stackgrad should
-%                match exactly that of the size of the matrices in stack.
-%
-
 m = size(data, 2);
-
-% sigmoid = @(x) 1 ./ (1 + exp(-x));
+groundTruth = full(sparse(labels, 1:m, 1));
+maxLabel = max(labels); %may be some labels not used
+groundTruth(maxLabel+1:numClasses, :) = 0;
 
 %% -------------------
 % forward

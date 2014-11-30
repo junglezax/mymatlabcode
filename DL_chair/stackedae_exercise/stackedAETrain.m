@@ -1,4 +1,4 @@
-function [model, out] = stackedAETrain(data, out, options, model)
+function [model, out] = stackedAETrain(data, out, model, options)
 
 %%======================================================================
 %% Train the first sparse autoencoder
@@ -76,15 +76,15 @@ stack{2}.w = reshape(model.sae2OptTheta(1:options.hiddenSizeL2*options.hiddenSiz
 stack{2}.b = model.sae2OptTheta(2*options.hiddenSizeL2*options.hiddenSizeL1+1:2*options.hiddenSizeL2*options.hiddenSizeL1+options.hiddenSizeL2);
 
 % Initialize the parameters for the deep model
-[stackparams, netconfig] = stack2params(stack);
-stackedAETheta = [ saeSoftmaxOptTheta ; stackparams ];
+[stackparams, model.netconfig] = stack2params(stack);
+model.stackedAETheta = [ saeSoftmaxOptTheta ; stackparams ];
 
 %% ------------------------------------------------------
 % finetuning
 [model.stackedAEOptTheta, model.costFine] = minFunc( @(p) stackedAECost(p, options.inputSize, options.hiddenSizeL2, ...
-                                              options.numClasses, netconfig, ...
+                                              options.numClasses, model.netconfig, ...
                                               options.lambda, out.trainData, out.trainLabels), ...
-                              stackedAETheta, options);
+                              model.stackedAETheta, options);
 
 %% ------------------------------------------------------
 % train svm
