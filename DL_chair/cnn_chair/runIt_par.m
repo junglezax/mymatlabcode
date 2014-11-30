@@ -1,4 +1,4 @@
-function [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt(dataFrom, data)
+function [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt_par(dataFrom, data)
 % dataFrom: read, load, none
 % example: [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt();
 %          [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt('load');
@@ -80,7 +80,20 @@ labeledImages = data.img_resized; % use same image set with feature extracting
 
 %[trainImages, trainLabels, testImages, testLabels] = sampleData4d(labeledImages, data.labels, trainSet, testSet);
 
-[model.softmaxModel, out.sampleOut, out.trainFeatures] = trainCnnSoftmax(model, labeledImages, data.labels, runOptions);
+disp('sampling for train...');
+out.sampleOut = sampleImageToTrain(labeledImages, data.labels);
+disp('finish sampling for train...');
+
+disp('computing train features...');
+out.trainFeatures = cnnComputeFeature_par(model, out.sampleOut.trainImages, runOptions);
+disp('finish computing train features...');
+
+numTrainImages = size(out.sampleOut.trainImages, 4);
+inputSize = numel(out.trainFeatures) / numTrainImages;
+	
+disp('training softmax...');
+model.softmaxModel = trainSoftmax(out.trainFeatures, out.sampleOut.trainLabels, runOptions);
+disp('training softmax finished');
 
 if runOptions.save
     %disp('saving features')
@@ -90,7 +103,7 @@ end
 
 % test classifier
 %disp('computing features for test data')
-out.testFeatures = cnnComputeFeature(model, out.sampleOut.testImages, runOptions);
+out.testFeatures = cnnComputeFeature_par(model, out.sampleOut.testImages, runOptions);
 
 %disp('predicting for test data')
 [accTest, predTest] = testSoftmax(model.softmaxModel, out.testFeatures, out.sampleOut.testLabels);
@@ -106,6 +119,6 @@ allLabels = [out.sampleOut.trainLabels; out.sampleOut.testLabels];
 %fprintf('imgdir: %s\n', runOptions.imgDir);
 %fprintf('imgCnt: %d\n', numel(data.fns));
 %fprintf('badCnt: %d\n', data.badCnt);
-%fprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, numPatches=\n', runOptions.imageDim, runOptions.patchDim, runOptions.poolDim, runOptions.hiddenSize, runOptions.numClasses, runOptions.numPatches);
+%fprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, numPatches=%d\n', runOptions.imageDim, runOptions.patchDim, runOptions.poolDim, runOptions.hiddenSize, runOptions.numClasses, runOptions.numPatches);
 
 end

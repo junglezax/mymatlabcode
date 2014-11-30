@@ -27,7 +27,7 @@ function x = cnnComputeFeature_par(model, images, options)
 		pooledFeaturesThis = cnnPool(options.poolDim, convolvedFeaturesThis);
 		pooledFeatures(featureStart:featureEnd, :, :, :) = pooledFeaturesThis;
 		
-		clear convolvedFeaturesThis pooledFeaturesThis;
+		%clear convolvedFeaturesThis pooledFeaturesThis;
 	end
 
 	disp('convolving & pooling for features finished');
