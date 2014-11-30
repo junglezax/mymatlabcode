@@ -22,7 +22,7 @@ function varargout = cbires(varargin)
 
 	% Edit the above text to modify the response to help cbires
 
-	% Last Modified by GUIDE v2.5 21-Nov-2014 23:37:24
+	% Last Modified by GUIDE v2.5 30-Nov-2014 12:54:44
 
 	% Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -56,6 +56,14 @@ function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
 	handles.modelput = hObject;
 
 	handles.options = cnnOptions();
+	
+	handles.options.dataDir = [handles.options.dataDir, 'cbir/'];
+    handles.outFilename = [handles.options.dataDir, 'out.mat'];
+    handles.modelFilename = [handles.options.dataDir, 'model.mat'];
+    handles.retrievalDataFilename = [handles.options.dataDir, 'retrievalData.mat'];
+    
+    handles.out = struct;
+    handles.model = struct;
 	
 	handles.unlabeledDir = handles.options.imgDir; %'../../../images/chairs/png97';
 	handles.retrievalDir = handles.unlabeledDir;
@@ -103,11 +111,14 @@ function btn_BrowseImage_Callback(hObject, eventdata, handles)
 			
             plotQueryImage(queryImage);
             
-			helpdlg('Proceed with the query by executing the green button!');
+			%helpdlg('Proceed with the query by executing the green button!');
 			
 			% Clear workspace
 			clear('query_fname', 'query_pathname', 'query_fullpath', 'pathstr', ...
 				'name', 'ext', 'queryImage');
+            
+            executeQuery(hObject, eventdata, handles);
+            
 		else
 			errordlg('You have not selected the correct file type');
 		end
@@ -132,8 +143,7 @@ function popupmenu_DistanceFunctions_CreateFcn(hObject, eventdata, handles)
 end
 
 %% ==========================================================================
-% --- Executes on button press in btnExecuteQuery.
-function btnExecuteQuery_Callback(hObject, eventdata, handles)
+function executeQuery(hObject, eventdata, handles)
 	% check for image query
 	if (~isfield(handles, 'queryImage'))
 		errordlg('Please select an image first, then choose your similarity metric and num of returned images!');
@@ -141,7 +151,7 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	end
 
 	% check for dataset existence
-	if (~isfield(handles, 'featureSet'))
+	if (~isfield(handles.out, 'featureSet'))
 		errordlg('Please load a dataset first. If you dont have one then you should consider creating one!');
 		return;
     end
@@ -157,7 +167,7 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 
     handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
 	if handles.classifyAlg ~= 1
-        if (~isfield(handles, 'predSet'))
+        if (~isfield(handles.out, 'predSet'))
             errordlg('Please load a gen prediction set first!');
             return;
         end
@@ -172,17 +182,21 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
         elseif handles.classifyAlg == 3
             error('predicting for retrieval features with svm not supported')
         end
-
+        
         fprintf('predicting result %d\n', pred);
 
         newPred = confirmPred(queryImage, pred);
         newPred = str2double(newPred{1});
         
         fprintf('newPred %d\n', newPred);
-		
-		cls_idxs = find(handles.predSet == newPred);
+
+        if handles.classifyAlg ~= 1
+            set(handles.textClassifyResult, 'String', ['classify result£º', num2str(newPred)]);
+        end
+        
+		cls_idxs = find(handles.out.predSet == newPred);
     else
-        cls_idxs = 1:size(handles.featureSet, 2);
+        cls_idxs = 1:size(handles.out.featureSet, 2);
 	end
 
 	handles.queryImageFeature = queryImageFeature;
@@ -191,11 +205,11 @@ function btnExecuteQuery_Callback(hObject, eventdata, handles)
 	assignin('base', 'queryImageFeature', handles.queryImageFeature);
 
 	if (metric == 1)
-		idxs = L1(handles.numOfReturnedImages, handles.queryImageFeature, handles.featureSet(:, cls_idxs)); 
+		idxs = L1(handles.numOfReturnedImages, handles.queryImageFeature, handles.out.featureSet(:, cls_idxs)); 
 	elseif (metric == 2 || metric == 3 || metric == 4 || metric == 5 || metric == 6  || metric == 7 || metric == 8 || metric == 9 || metric == 10 || metric == 11)
-		idxs = L2(handles.numOfReturnedImages, handles.queryImageFeature, handles.featureSet(:, cls_idxs), metric);
+		idxs = L2(handles.numOfReturnedImages, handles.queryImageFeature, handles.out.featureSet(:, cls_idxs), metric);
 	else
-		idxs = relativeDeviation(handles.numOfReturnedImages, handles.queryImageFeature, handles.featureSet(:, cls_idxs));
+		idxs = relativeDeviation(handles.numOfReturnedImages, handles.queryImageFeature, handles.out.featureSet(:, cls_idxs));
 	end
 	plotReturnedImages(handles.queryImage, handles.retrievalData.images, idxs, cls_idxs);
 end
@@ -372,45 +386,20 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
 		if handles.classifyAlg == 2
             disp('predicting for retrieval features with softmax')
             predSet = softmaxPredict(handles.softmaxModel, featureSet);
-            handles.predSet = predSet;
+            handles.out.predSet = predSet;
         elseif handles.classifyAlg == 3
             error('predicting for retrieval features with svm not supported')
-            %handles.predSet = predSet;
+            %handles.out.predSet = predSet;
 		end
 		
-		handles.featureSet = featureSet;
+		handles.out.featureSet = featureSet;
 		guidata(hObject, handles);
-		
-		% prompt to save dataset
-		uisave({'featureSet', 'predSet'}, '../../../data/features.mat');
 	end
 	
 	disp('creating db finished');
 end
 
 %% ==========================================================================
-% --- Executes on button press in btn_LoadDataset.
-function btn_LoadDataset_Callback(hObject, eventdata, handles)
-	[fname, pthname] = uigetfile('*.mat', 'Select the Dataset');
-	if (fname ~= 0)
-		dataset_fullpath = strcat(pthname, fname);
-		[pathstr, name, ext] = fileparts(dataset_fullpath);
-		if ( strcmp(lower(ext), '.mat') == 1)
-			filename = fullfile( pathstr, strcat(name, ext) );
-			handles.featureSet = load(filename);
-			guidata(hObject, handles);
-			
-			%make dataset visible from workspace
-			assignin('base', 'featureSet', handles.featureSet);
-			helpdlg('Dataset loaded successfuly!');
-		else
-			errordlg('You have not selected the correct file type');
-		end
-	else
-		return;
-	end
-end
-
 % --- Executes on button press in btnTrainClassifier.
 function btnTrainClassifier_Callback(hObject, eventdata, handles)
     handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
@@ -517,18 +506,59 @@ function btnComputeFeatures_Callback(hObject, eventdata, handles)
 	handles.model.meanPatch = meanPatch;
 	
 	guidata(hObject, handles);
-
-	fprintf('Saving\n');
-	save('../../../data/chairLinearFeatures.mat', 'optTheta', 'ZCAWhite', 'meanPatch');
-	fprintf('Saved\n');
 end
 
 % --- Executes on button press in btnSaveModel.
 function btnSaveModel_Callback(hObject, eventdata, handles)
+    fprintf('Saving model...\n');
+    model = handles.model;
+	save(handles.modelFilename, 'model');
+	fprintf('model Saved\n');
+
+    fprintf('Saving retrievalData...\n');
+    retrievalData = handles.retrievalData;
+	save(handles.retrievalDataFilename, 'retrievalData');
+	fprintf('retrievalData Saved\n');
+end
+
+% --- Executes on button press in btnSaveFeaSet.
+function btnSaveFeaSet_Callback(hObject, eventdata, handles)
+    fprintf('Saving feature set...\n');
+    out = handles.out;
+	save(handles.outFilename, 'out');
+	fprintf('out set saved\n');
 end
 
 % --- Executes on button press in btnLoadModel.
 function btnLoadModel_Callback(hObject, eventdata, handles)
+    disp('loading model...');
+    t = load(handles.modelFilename);
+	handles.model = t.model;
+	guidata(hObject, handles);
+	
+	assignin('base', 'model', handles.model);
+    
+    disp('loading retrievalData...');
+    t = load(handles.retrievalDataFilename);
+	handles.retrievalData = t.retrievalData;
+	guidata(hObject, handles);
+	
+	assignin('base', 'retrievalData', handles.model);
+    
+	helpdlg('model loaded successfuly!');
+end
+
+
+% --- Executes on button press in btnLoadFeaSet.
+function btnLoadFeaSet_Callback(hObject, eventdata, handles)
+    disp('loading dataset');
+    t = load(handles.outFilename);
+	handles.out = t.out;
+	guidata(hObject, handles);
+	
+	%make dataset visible from workspace
+	assignin('base', 'out', handles.out);
+	helpdlg('Dataset loaded successfuly!');
 end
 
 function info_Callback(hObject, eventdata, handles)
@@ -557,4 +587,3 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 end
-

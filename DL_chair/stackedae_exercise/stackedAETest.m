@@ -1,29 +1,32 @@
+function [acc, accFine, accAll, F1, pred, predFine, predAll] = stackedAETest(data, out, model, options)
+
 %%======================================================================
 %% STEP 6: Test 
 
-[pred] = stackedAEPredict(stackedAETheta, inputSize, hiddenSizeL2, ...
-                          numClasses, netconfig, testData, classMethod, multiSVMmodels, usedLabels);
+[pred] = stackedAEPredict(model.stackedAETheta, options.inputSize, options.hiddenSizeL2, ...
+                          options.numClasses, model.netconfig, out.testData, options.classMethod, model.multiSVMmodels, model.usedLabels);
 
-acc = mean(testLabels(:) == pred(:));
+acc = mean(out.testLabels(:) == pred(:));
 fprintf('Before Finetuning Test Accuracy: %0.3f%%\n', acc * 100);
 
-[pred] = stackedAEPredict(stackedAEOptTheta, inputSize, hiddenSizeL2, ...
-                          numClasses, netconfig, testData, classMethod, multiSVMmodels, usedLabels);
+[predFine] = stackedAEPredict(model.stackedAEOptTheta, options.inputSize, options.hiddenSizeL2, ...
+                          options.numClasses, model.netconfig, out.testData, options.classMethod, model.multiSVMmodels, model.usedLabels);
 
-acc = mean(testLabels(:) == pred(:));
-fprintf('After Finetuning Test Accuracy: %0.3f%%\n', acc * 100);
+accFine = mean(out.testLabels(:) == predFine(:));
+fprintf('After Finetuning Test Accuracy: %0.3f%%\n', accFine * 100);
 
 %% -----------------------------------------------------
 % test all examples
-[pred1] = stackedAEPredict(stackedAEOptTheta, inputSize, hiddenSizeL2, ...
-                          numClasses, netconfig, labeledData, classMethod, multiSVMmodels, usedLabels);
+[predAll] = stackedAEPredict(model.stackedAEOptTheta, options.inputSize, options.hiddenSizeL2, ...
+                          options.numClasses, model.netconfig, data.labeledData, options.classMethod, model.multiSVMmodels, model.usedLabels);
 						  
-pp = sum(pred1(:) == allLabels(:));
-tt = numel(allLabels);
+pp = sum(predAll(:) == data.labels(:));
+tt = numel(data.labels);
+accAll = pp/tt;
 fprintf('Test Accuracy on all examples: %d/%d = %f%%\n', pp, tt, 100*pp/tt);
 
-pr1 = pred1(:);
-lb1 = allLabels(:);
+pr1 = predAll(:);
+lb1 = data.labels(:);
 
 levels = unique(lb1);
 for i = 1:numel(levels)
@@ -34,3 +37,5 @@ end
 
 [F1, prec, rec] = f1_score(lb1, pr1);
 fprintf('F1 score: %f%%\n', 100 * F1);
+
+end

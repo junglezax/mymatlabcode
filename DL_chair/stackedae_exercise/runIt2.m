@@ -1,4 +1,4 @@
-function [out, model, data] = runIt2()
+function [acc, accFine, accAll, F1, pred, predFine, predAll, out, model, data] = runIt2()
 
 %%======================================================================
 %% STEP 0: relevant parameters
@@ -49,7 +49,7 @@ out = struct;
 
 %----------------------------
 % run stackedAE*2+softmax classification
-[model, out] = stackedAETrain(data, out, options, model);
-%stackedAETest(out, options);
+[model, out] = stackedAETrain(data, out, model, options);
+[acc, accFine, accAll, F1, pred, predFine, predAll] = stackedAETest(data, out, model, options);
 
 end

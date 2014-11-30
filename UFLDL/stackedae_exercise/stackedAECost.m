@@ -38,7 +38,8 @@ cost = 0; % You need to compute this
 % You might find these variables useful
 M = size(data, 2);
 groundTruth = full(sparse(labels, 1:M, 1));
-
+maxLabel = max(labels); %may be some labels not used
+groundTruth(maxLabel+1:numClasses, :) = 0;
 
 %% --------------------------- YOUR CODE HERE -----------------------------
 %  Instructions: Compute the cost function and gradient vector for 
