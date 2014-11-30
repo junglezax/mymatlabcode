@@ -3,7 +3,7 @@ function [accTests, accAlls] = runMulti_par(cnt, data)
 	%        tic; [accTests, accAlls] = runMulti_par(2, data); toc
 	%        no-par version: tic; [accTests, ~, accAlls] = runMulti(2, 'none', data); toc
 	
-	coreNum = 4;
+	coreNum = 12;
 	if matlabpool('size') <= 0
 		matlabpool('open', 'local', coreNum);
 	else
