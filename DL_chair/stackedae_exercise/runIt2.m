@@ -15,6 +15,7 @@ disp('finished loading data...')
 model = struct;
 
 disp('doing PCA...')
+size(data.x)
 
 % PCA
 [x1, xTilde, model.u, model.k, dg] = doPCA(data.x);
