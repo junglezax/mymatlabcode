@@ -7,10 +7,15 @@ options = cnnOptions(true);
 %options.inputSize  = options.imageDim * options.imageDim;
 %% ======================================================================
 % Load unlabeled data
+disp('loading data...')
 data = load_it(options.imgDir, options, true);
+disp('finished loading data...')
 
 %---------------------------
 model = struct;
+
+disp('doing PCA...')
+size(data.x)
 
 % PCA
 [x1, xTilde, model.u, model.k, dg] = doPCA(data.x);
@@ -18,12 +23,14 @@ model = struct;
 %model.k=700;
 %fprintf('k=%d ratio=%f\n', k, sum(dg(1:k))/sum(dg));
 %xTilde = u(:, 1:model.k)' * x1;
+disp('finish doing PCA...')
 
 %---------------------------
 if options.save
-disp('saving..');
+	disp('saving..');
 	%save('../../../data/chairs_10000_64x64.mat', 'data.x', 'fns', 'bad', 'x1', 'xTilde', 'u', 'k', 'dg');
 	save('../../../data/chairs_10000_128x128.mat', 'data.x', 'fns', 'bad', 'x1', 'xTilde', 'u', 'k', 'dg');
+	disp('finished saving...');
 end
 
 % PCA faces
@@ -49,7 +56,12 @@ out = struct;
 
 %----------------------------
 % run stackedAE*2+softmax classification
+disp('training SAE...')
 [model, out] = stackedAETrain(data, out, model, options);
+disp('finished training SAE...')
+
+disp('testing SAE...')
 [acc, accFine, accAll, F1, pred, predFine, predAll] = stackedAETest(data, out, model, options);
+disp('finished testing SAE...')
 
 end
