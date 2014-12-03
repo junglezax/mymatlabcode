@@ -17,9 +17,11 @@ function data = read_chairs_img(imgDir, imageDim, toGray, verbose)
 		verbose = false;
 	end
 
-	acceptExts = {'png', 'jpg'};
+	acceptExts = {'png', 'jpg', 'gif', 'bmp'};
 	
 	fnames = dirRecursive(imgDir);
+	data.dirImgCnt = cntByDir(fnames, acceptExts);
+	
 	m = numel(fnames);
 	
 	data = struct;
