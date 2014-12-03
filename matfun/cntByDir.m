@@ -14,3 +14,4 @@ function [dirFileCnt, fnames] = cntByDir(fnames, acceptExts)
 	disp(dirFileCnt);
 end
 
+% setdiff(fnamesNew, data.fns)

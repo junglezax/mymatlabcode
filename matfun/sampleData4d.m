@@ -1,4 +1,4 @@
-function sampleOut = sampleData4d(x, allLabels, trainSet, testSet);
+function sampleOut = sampleData4d(x, allLabels, trainSet);
 	% sample
 	% x: cell matrix, for example a matrix of m images, each r*c*3
 	m = numel(x);
