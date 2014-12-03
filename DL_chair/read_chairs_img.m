@@ -17,10 +17,12 @@ function data = read_chairs_img(imgDir, imageDim, toGray, verbose)
 		verbose = false;
 	end
 
-	acceptExts = {'png', 'jpg', 'gif', 'bmp'};
+	acceptExts = {'png', 'jpg', 'gif', 'bmp', 'jpeg'};
 	
 	fnames = dirRecursive(imgDir);
-	data.dirImgCnt = cntByDir(fnames, acceptExts);
+	
+	%addpath '../../matlib'
+	[data.dirFileCnt, fnames] = cntByDir(fnames, acceptExts);
 	
 	m = numel(fnames);
 	
@@ -43,9 +45,9 @@ function data = read_chairs_img(imgDir, imageDim, toGray, verbose)
 	fprintf('reading images from %s\n', imgDir);
 	for fnc = fnames
         fn = fnc{1};
-		if ~ismember(lower(getExt(fn)), acceptExts)
-			continue;
-		end
+		% ~ismember(lower(getExt(fn)), acceptExts)
+		%	continue;
+		%end
 
 		if verbose
 			fprintf('reading image %s\n', fn);
