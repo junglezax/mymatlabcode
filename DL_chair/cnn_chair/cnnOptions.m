@@ -4,9 +4,9 @@ if ~exist('useSAE', 'var')
 	useSAE = false;
 end
 
-options.imageDim = 487;
+options.imageDim = 87;
 options.patchDim = 8;
-options.poolDim = 48;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
+options.poolDim = 8;          % dimension of pooling region % (imageDim - patchDim + 1)/poolDim = int
 options.imageChannels = 3;     % number of channels (rgb, so 3)
 options.numPatches = 10000;   % number of patches
 options.hiddenSize  = 20;           % number of hidden units 
@@ -22,7 +22,7 @@ options.maxIter = 100;
 options.softmaxIter = 100;
 options.softmaxLambda = 1e-4;
 
-options.labelLevel = 2;
+options.labelLevel = 1;
 options.save = false;
 options.display = 'Off';
 
