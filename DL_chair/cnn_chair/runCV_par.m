@@ -41,7 +41,7 @@ function [accTests, data_small] = runCV_par(k, data)
 			trainSet = ~testSet;
 		end
 
-		sampleOut = sampleData4d(data.img_resized, data.labels, trainSet, testSet);
+		sampleOut = sampleData4d(data.img_resized, data.labels, trainSet);
 		
 		fprintf('---------------------cycle %d------------------------\n', i);
         [~, predTest] = runIt_par('none', data, sampleOut);
