@@ -1,7 +1,7 @@
 function [error_train, error_val, data, out, model, options] = drawLearnCurve()
 	%matlab -nosplash
 	
-	coreNum = 2;
+	coreNum = 12;
 	if matlabpool('size') <= 0
 		disp('opening matlabpool....');
 		matlabpool('open', 'local', coreNum);
