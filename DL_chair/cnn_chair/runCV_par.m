@@ -14,61 +14,37 @@ function [accTests, data_small] = runCV_par(k, data)
 	if ~exist('k', 'var')
 		k = 10;
 	end	
-	
-	leaveOne = false;
-	if k == 0
-		leaveOne = true;
-	end
 	  
 	if ~exist('data', 'var')
 		runOptions = cnnOptions();
 		data = load_it(runOptions.imgDir, runOptions, true);
 	end	
-	
-	accTests = zeros(1, k);
+
     data_small = rmfield(data, {'images', 'x'});
 	
     m = numel(data_small.labels);
     
+	if k == 0
+		k = m;
+	end
+
     if k > m
         k = m;
     end
     
-	if ~leaveOne
-		indices = crossvalind('Kfold', data_small.labels, k);
-	end
+	accTests = zeros(1, k);
+	cp = cvpartition(data_small.labels, 'k', k);
 	
-	cp = classperf(data_small.labels);
-    
-    if leaveOne
-        loopMax = m;
-    else
-        loopMax = k;
-    end
-    
-	for i = 1:loopMax
-		if leaveOne
-			[trainSet, testSet] = crossvalind('LeaveMOut', data_small.labels, 1);
-		else
-			testSet = find(indices == i);
-			trainSet = setdiff(1:m, testSet); %~testSet;
-		end
+	for i = 1:k
+		trainSet = cp.training(i);
 
 		sampleOut = sampleData4d(data_small.img_resized, data_small.labels, trainSet);
 		
 		fprintf('---------------------cycle %d------------------------\n', i);
-        [~, predTest] = runIt_par('none', data_small, sampleOut)
+        [~, predTest] = runIt_par('none', data_small, sampleOut);
 
-		classperf(cp, predTest, testSet);
-		accTests(i) = 1 - cp.ErrorRate;
-		fprintf('cp.ErrorRate=%.2f\n', cp.ErrorRate);
+		accTests(i) = mean(predTest(:) == sampleOut.testLabels(:));
 	end
-	
-		fprintf('cross validation finished. cp.ErrorRate=%.2f\n', cp.ErrorRate);
-		if leaveOne
-			fprintf('LeaveOneOut cross validation, average accTest=%%%.2f-std=%%%.2f\n', 100*mean(accTests), std(accTests));
-		else
-			fprintf('%d-fold cross validation, average accTest=%%%.2f-std=%%%.2f\n', k, 100*mean(accTests), std(accTests));
-		end
-end
 
+	fprintf('%d-fold cross validation, average accTest=%%%.2f-std=%%%.2f\n', k, 100*mean(accTests), std(accTests));
+end
