@@ -20,7 +20,7 @@ options.epsilon = 0.1;	       % epsilon for ZCA whitening
 options.maxIter = 100;
 
 options.softmaxIter = 100;
-options.softmaxLambda = 1e-4;
+options.softmaxLambda = 0.1;
 
 options.labelLevel = 1;
 options.save = false;
@@ -32,6 +32,7 @@ options.dataDir = '../../../data/';
 
 options.classMethod = 'softmax'; % softmax/svm
 
+options.coreNum = 12; % for matlabpool, parfor
 
 if useSAE
 options.sparsityParam = 0.1;
@@ -43,7 +44,7 @@ options.hiddenSizeL2 = 100;
 end
 
 % for debug
-if 1
+if 0
 options.imgDir = '../../../images/nope';
 options.imageDim = 15;
 options.patchDim = 4;
@@ -54,6 +55,7 @@ options.hiddenSize  = 4;           % number of hidden units
 options.stepSize = 2; % hiddenSize / stepSize = int
 options.maxIter = 10;
 options.softmaxIter = 5;
+options.coreNum = 2;
 end
 
 options.numClasses = code2label(options.labelLevel);

@@ -6,15 +6,10 @@ function [accTests, data_small] = runCV_par(k, data)
 	%        tic; [accTests, data_small] = runCV_par(20, data); toc
 	
 	%matlab -nosplash (matlabpool need java)
-	coreNum = 12;
-	if matlabpool('size') <= 0
-		disp('opening matlabpool....');
-		matlabpool('open', 'local', coreNum);
-	else
-		% matlabpool close
-		% matlabpool('open', 'local', coreNum);
-		disp('Already initialized');
-	end
+	
+	options = cnnOptions();
+	
+	startpool(options.coreNum);
 
 	if ~exist('k', 'var')
 		k = 10;

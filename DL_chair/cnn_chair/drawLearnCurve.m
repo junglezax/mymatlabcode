@@ -1,7 +1,7 @@
 %function [error_train, error_val, data_small, out, model, options] = drawLearnCurve()
 	%matlab -nosplash
 	
-	startpool(2);
+	startpool(options.coreNum);
 	
 	if 0
 		options = cnnOptions();
@@ -45,7 +45,7 @@
 		iThTrainLabels = trainLabels(iThTrainSet);
 		
 		%disp('training softmax...');
-		options.softmaxLambda = 1;
+		options.softmaxLambda = 0.5;
 		model.softmaxModel = trainSoftmax(iThTrainData, iThTrainLabels, options);
 		%disp('finish training softmax...');
 		
