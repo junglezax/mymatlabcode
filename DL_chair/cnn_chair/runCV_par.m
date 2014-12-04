@@ -48,4 +48,3 @@ function [accTests, data_small] = runCV_par(k, data)
 
 	fprintf('%d-fold cross validation, average accTest=%%%.2f-std=%%%.2f\n', k, 100*mean(accTests), std(accTests));
 end
-
