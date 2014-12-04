@@ -20,7 +20,7 @@ options.epsilon = 0.1;	       % epsilon for ZCA whitening
 options.maxIter = 100;
 
 options.softmaxIter = 100;
-options.softmaxLambda = 0.1;
+options.softmaxLambda = 0.01;
 
 options.labelLevel = 1;
 options.save = false;
