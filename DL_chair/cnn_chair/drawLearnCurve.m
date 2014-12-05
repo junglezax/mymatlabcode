@@ -44,7 +44,7 @@
 		iThTrainLabels = trainLabels(iThTrainSet);
 		
 		%disp('training softmax...');
-		options.softmaxLambda = 0.01;
+		options.softmaxLambda = 0.005;
 		model.softmaxModel = trainSoftmax(iThTrainData, iThTrainLabels, options);
 		%disp('finish training softmax...');
 		

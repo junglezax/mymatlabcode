@@ -1,4 +1,4 @@
-function [accTests, data_small] = runCV_par(k, data)
+function [accTests, data_small, options] = runCV_par(k, data)
 % run with K-fold cross validation
 % k==0 for LeaveOneOut CV
 	%example [accTests, data_small] = runCV_par()
