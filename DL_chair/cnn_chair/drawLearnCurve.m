@@ -3,8 +3,8 @@
 	
 	options = cnnOptions();
 	startpool(options.coreNum);
-	
-	if 0
+
+	if 1
 		data = load_it(options.imgDir, options, true);
 		data_small = rmfield(data, {'images', 'x'});
 		

@@ -7,6 +7,8 @@ function [dirFileCnt, fnames] = cntByDir(fnames, acceptExts)
 	end
 
 	dirvec = cellfun(@(x) getPath(x), fnames, 'UniformOutput', false);
+size(dirvec)
+class(dirvec)
 
 	%dispCells(dirvec);
 	dirFileCnt = sortcell(tabulate(dirvec), 1);
