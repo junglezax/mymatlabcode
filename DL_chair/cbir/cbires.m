@@ -179,7 +179,7 @@ function executeQuery(hObject, eventdata, handles)
         
         pred = 0;
         if handles.classifyAlg == 2
-            pred = softmaxPredict(handles.softmaxModel, queryImageFeature);
+            pred = softmaxPredict(handles.model.softmaxModel, queryImageFeature);
         elseif handles.classifyAlg == 3
             error('predicting for retrieval features with svm not supported')
         end
@@ -386,7 +386,7 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
         predSet = [];
 		if handles.classifyAlg == 2
             disp('predicting for retrieval features with softmax')
-            predSet = softmaxPredict(handles.softmaxModel, featureSet);
+            predSet = softmaxPredict(handles.model.softmaxModel, featureSet);
             handles.out.predSet = predSet;
         elseif handles.classifyAlg == 3
             error('predicting for retrieval features with svm not supported')
@@ -409,8 +409,8 @@ function btnTrainClassifier_Callback(hObject, eventdata, handles)
 
 		handles.sampleOut = sampleData4d(handles.labeledData.img_resized, handles.labeledData.labels);
 		handles.trainFeatures = cnnComputeFeature(handles.model, handles.sampleOut.trainData, handles.options);
-		handles.softmaxModel = trainSoftmax(handles.trainFeatures, handles.sampleOut.trainLabels, handles.options);
-        %[handles.softmaxModel, handles.sampleOut] = trainSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
+		handles.model.softmaxModel = trainSoftmax(handles.trainFeatures, handles.sampleOut.trainLabels, handles.options);
+        %[handles.model.softmaxModel, handles.sampleOut] = trainSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
         guidata(hObject, handles);
     elseif handles.classifyAlg == 3
         error('predicting for retrieval features with svm not supported')
@@ -424,7 +424,7 @@ function btnTestClassifier_Callback(hObject, eventdata, handles)
     handles.testFeatures = cnnComputeFeature(handles.model, handles.sampleOut.testData, handles.options);
 
 	disp('predicting for test data')
-    [accTest, predTest] = testSoftmax(handles.softmaxModel, handles.testFeatures, handles.sampleOut.testLabels);
+    [accTest, predTest] = testSoftmax(handles.model.softmaxModel, handles.testFeatures, handles.sampleOut.testLabels);
 
 	handles.accTest = accTest;
 	handles.predTest = predTest;

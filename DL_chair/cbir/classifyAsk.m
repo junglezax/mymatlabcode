@@ -58,7 +58,15 @@ function classifyAsk_OpeningFcn(hObject, eventdata, handles, varargin)
 	
     set(handles.info, 'String', ['retrieval dir: ', handles.retrievalDir]);
 
+	fnames = dirRecursive(handles.retrievalDir);
+    acceptExts = {'png', 'jpg', 'gif', 'bmp', 'jpeg'};
+    [handles.dirFileCnt, handles.fnames] = cntByDir(fnames, acceptExts);
+	handles.current = 1;
 	guidata(hObject, handles);
+	
+    set(handles.selClassifyAlg, 'Value', 1);
+    
+    loadModel(hObject, handles);
 
 	% UIWAIT makes classifyAsk wait for user response (see UIRESUME)
 	% uiwait(handles.figure1);
@@ -104,6 +112,10 @@ end
 %% ==========================================================================
 % --- Executes on button press in btnLoadModel.
 function btnLoadModel_Callback(hObject, eventdata, handles)
+    loadModel(hObject, handles);
+end
+
+function loadModel(hObject, handles)
     disp('loading model...');
     t = load(handles.modelFilename);
 	handles.model = t.model;
@@ -117,24 +129,38 @@ function btnLoadModel_Callback(hObject, eventdata, handles)
 	guidata(hObject, handles);
 	
 	assignin('base', 'model', handles.model);
+    assignin('base', 'options', handles.options);
 end
 
 %% ==========================================================================
 function btnCorrect_Callback(hObject, eventdata, handles)
-    if (~isfield(handles, 'model'))
+    handles.current = handles.current + 1;
+	if handles.current > handles.dirFileCnt
+		errordlg('finished');
+		handles.current = 1;
+    end
+    guidata(hObject, handles);
+	
+    classifyImg(handles, handles.current);	
+end
+
+%% ==========================================================================
+function btnStart_Callback(hObject, eventdata, handles)
+    handles.current = 1;
+    guidata(hObject, handles);
+	classifyImg(handles, handles.current);
+end
+
+%% ==========================================================================
+function classifyImg(handles, idx)
+	if (~isfield(handles, 'model'))
 		errordlg('Please load model first!');
 		return;
     end
-    
-        fnames = dirRecursive(handles.retrievalDir);
-        acceptExts = {'png', 'jpg', 'gif', 'bmp', 'jpeg'};
-        [data.dirFileCnt, fnames] = cntByDir(fnames, acceptExts);
-        for fnc = fnames
-            %if handles.stoped
-            %    break;
-            %end
-        
-            fn = fnc{1};
+	
+	fprintf('classify image #%d\n', idx);
+	
+			fn = handles.fnames{idx};
             
             queryImage = imread(fn);
             plotQueryImage(queryImage);
@@ -157,17 +183,10 @@ function btnCorrect_Callback(hObject, eventdata, handles)
             end
 
             fprintf('predicting result %d\n', pred);
-
-            newPred = confirmPred(queryImage, pred);
-            if numel(newPred) < 1
-                break;
-            end
-            newPred = str2double(newPred{1});
-
-            fprintf('newPred %d\n', newPred);
+            disp(handles.classifyAlg)
             
             if handles.classifyAlg ~= 1
-                set(handles.textClassifyResult, 'String', ['classify result£º', num2str(newPred)]);
+                set(handles.textClassifyResult, 'String', ['classify result£º', num2str(pred)]);
             end
-        end
 end
+
