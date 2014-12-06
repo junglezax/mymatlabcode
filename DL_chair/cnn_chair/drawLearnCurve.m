@@ -4,7 +4,7 @@
 	options = cnnOptions();
 	startpool(options.coreNum);
 
-	if 0
+	if 1
 		data = load_it(options.imgDir, options, true);
 		data_small = rmfield(data, {'images', 'x'});
 		
@@ -44,7 +44,7 @@
 		iThTrainLabels = trainLabels(iThTrainSet);
 		
 		%disp('training softmax...');
-		options.softmaxLambda = 0.01;
+		options.softmaxLambda = 0.0075;
 		model.softmaxModel = trainSoftmax(iThTrainData, iThTrainLabels, options);
 		%disp('finish training softmax...');
 		

@@ -1,4 +1,4 @@
-function [accTests, data_small] = runCV_par(k, data)
+function [accTests, predTests, data_small, options] = runCV_par(k, data)
 % run with K-fold cross validation
 % k==0 for LeaveOneOut CV
 	%example [accTests, data_small] = runCV_par()
@@ -33,6 +33,7 @@ function [accTests, data_small] = runCV_par(k, data)
     end
     
 	accTests = zeros(1, k);
+        predTests = {};
 	cp = cvpartition(data_small.labels, 'k', k);
 	
 	for i = 1:k
@@ -42,6 +43,7 @@ function [accTests, data_small] = runCV_par(k, data)
 		
 		fprintf('---------------------cycle %d------------------------\n', i);
         [~, predTest] = runIt_par('none', data_small, sampleOut);
+                predTests{i} = predTest;
 
 		accTests(i) = mean(predTest(:) == sampleOut.testLabels(:));
 	end
