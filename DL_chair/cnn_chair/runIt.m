@@ -1,9 +1,9 @@
-function [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt(dataFrom, data)
+function [accTest, predTest, accAll, predAll, options, model, out, data] = runIt(dataFrom, data)
 % dataFrom: read, load, none
-% example: [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt();
-%          [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt('load');
-%          [accTest, predTest, accAll, predAll, runOptions, model, out] = runIt('none', data);
-%          tic; [accTest, predTest, accAll, predAll, runOptions, model, out, data] = runIt(); usetime = toc
+% example: [accTest, predTest, accAll, predAll, options, model, out, data] = runIt();
+%          [accTest, predTest, accAll, predAll, options, model, out, data] = runIt('load');
+%          [accTest, predTest, accAll, predAll, options, model, out] = runIt('none', data);
+%          tic; [accTest, predTest, accAll, predAll, options, model, out, data] = runIt(); usetime = toc
 
 if ~exist('dataFrom', 'var')
 	dataFrom = 'read';
@@ -13,21 +13,21 @@ out = struct;
 model = struct;
 
 % parameters
-runOptions = cnnOptions();
-visibleSize = runOptions.patchDim * runOptions.patchDim * runOptions.imageChannels;  % number of input units, also is outputSize
+options = cnnOptions();
+visibleSize = options.patchDim * options.patchDim * options.imageChannels;  % number of input units, also is outputSize
 
 tic;
 % load images
 if ~strcmp(dataFrom, 'none')
 	disp('loading images');
-	data = load_it(runOptions.imgDir, runOptions, true);
+	data = load_it(options.imgDir, options, true);
 	disp('finish loading images');
 	toc;
 end
 
 % sample train images to train patches for train AE
 disp('sampling patches from images...');
-patches = sampleIMAGES_color(data.img_resized, runOptions.patchDim, runOptions.numPatches);
+patches = sampleIMAGES_color(data.img_resized, options.patchDim, options.numPatches);
 disp('sampling patches from images finished');
 toc;
 
@@ -41,28 +41,28 @@ meanPatch = mean(patches, 2);
 patches = bsxfun(@minus, patches, meanPatch);
 
 % Apply ZCA whitening
-sigma = patches * patches' / runOptions.numPatches;
+sigma = patches * patches' / options.numPatches;
 [u, s, v] = svd(sigma);
-ZCAWhite = u * diag(1 ./ sqrt(diag(s) + runOptions.epsilon)) * u';
+ZCAWhite = u * diag(1 ./ sqrt(diag(s) + options.epsilon)) * u';
 patches = ZCAWhite * patches;
 
 disp('finish doing ZCA...');
 toc;
 
 % train linear AE, got feature filter matrix
-theta = initializeParameters(runOptions.hiddenSize, visibleSize);
+theta = initializeParameters(options.hiddenSize, visibleSize);
 
-options = struct;
-options.Method = 'lbfgs'; 
-options.maxIter = runOptions.maxIter;
-options.display = runOptions.display;
+aeOptions = struct;
+aeOptions.Method = 'lbfgs'; 
+aeOptions.maxIter = options.maxIter;
+aeOptions.display = options.display;
 
 disp('training linear encoder...');
 [optTheta, cost] = minFunc( @(p) sparseAutoencoderLinearCost(p, ...
-                                   visibleSize, runOptions.hiddenSize, ...
-                                   runOptions.lambda, runOptions.sparsityParam, ...
-                                   runOptions.beta, patches), ...
-                              theta, options);
+                                   visibleSize, options.hiddenSize, ...
+                                   options.lambda, options.sparsityParam, ...
+                                   options.beta, patches), ...
+                              theta, aeOptions);
 disp('training linear encoder finished');
 toc;
 
@@ -70,7 +70,7 @@ model.optTheta = optTheta;
 model.ZCAWhite = ZCAWhite;
 model.meanPatch = meanPatch;
 
-if runOptions.save
+if options.save
 	fprintf('Saving LAE model\n');
 	save([options.dataDir '/chairLinearFeatures.mat'], 'model');
 	fprintf('Saved\n');
@@ -79,8 +79,8 @@ end
 
 %load ../../../data/chair97LinearFeatures.mat
 
-W = reshape(optTheta(1:visibleSize * runOptions.hiddenSize), runOptions.hiddenSize, visibleSize);
-b = optTheta(2*runOptions.hiddenSize*visibleSize+1:2*runOptions.hiddenSize*visibleSize+runOptions.hiddenSize);
+W = reshape(optTheta(1:visibleSize * options.hiddenSize), options.hiddenSize, visibleSize);
+b = optTheta(2*options.hiddenSize*visibleSize+1:2*options.hiddenSize*visibleSize+options.hiddenSize);
 
 %displayColorNetwork( (W*ZCAWhite)');
 
@@ -98,7 +98,7 @@ disp('finish sampling for train...');
 toc;
 
 disp('computing train features...');
-out.trainFeatures = cnnComputeFeature(model, out.sampleOut.trainData, runOptions);
+out.trainFeatures = cnnComputeFeature(model, out.sampleOut.trainData, options);
 disp('finish computing train features...');
 toc;
 
@@ -106,11 +106,11 @@ numTrainImages = size(out.sampleOut.trainData, 4);
 inputSize = numel(out.trainFeatures) / numTrainImages;
 	
 disp('training softmax...');
-model.softmaxModel = trainSoftmax(out.trainFeatures, out.sampleOut.trainLabels, runOptions);
+model.softmaxModel = trainSoftmax(out.trainFeatures, out.sampleOut.trainLabels, options);
 disp('training softmax finished');
 toc;
 
-if runOptions.save
+if options.save
     disp('saving out')
     save([runOption.dataDir '/cnnPooledFeaturesChairs.mat'], 'out');
 	disp('finish saving out');
@@ -119,7 +119,7 @@ end
 
 % test classifier
 disp('computing features for test data')
-out.testFeatures = cnnComputeFeature(model, out.sampleOut.testData, runOptions);
+out.testFeatures = cnnComputeFeature(model, out.sampleOut.testData, options);
 disp('finish computing features for test data');
 toc;
 
@@ -139,9 +139,9 @@ disp('finish predicting for all data')
 toc;
 
 disp('show key params:');
-fprintf('imgdir: %s\n', runOptions.imgDir);
+fprintf('imgdir: %s\n', options.imgDir);
 fprintf('imgCnt: %d\n', numel(data.fns));
 fprintf('badCnt: %d\n', data.badCnt);
-fprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, numPatches=%d\n', runOptions.imageDim, runOptions.patchDim, runOptions.poolDim, runOptions.hiddenSize, runOptions.numClasses, runOptions.numPatches);
+fprintf('imageDim=%d, patchDim=%d, poolDim=%d, hiddenSize=%d, numClasses=%d, numPatches=%d\n', options.imageDim, options.patchDim, options.poolDim, options.hiddenSize, options.numClasses, options.numPatches);
 
 end
