@@ -59,6 +59,7 @@
 	end
 	
 	% step5: draw curves using err_tr and err_te
+	mTrain = numel(error_train);
 	plot(1:mTrain, error_train, 1:mTrain, error_val);
 	%plot(1:mTrain, error_train);
 	%plot(1:mTrain, error_val);
@@ -73,7 +74,8 @@
 	for i = 1:mTrain
 		%fprintf('  \t%d\t\t%f\t%f\n', i, error_train(i), error_val(i));
 	end
-		
+	
+	%save([options.dataDir 'learnCurveData.mat'], 'error_train', 'error_val', 'options', 'model', 'data_small', '-v7.3');
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%[error_tr, error_te] = learningCurve3(ftr, fte, sampleOut.trainData, sampleOut.trainLabels, sampleOut.testData, sampleOut.testLabels, options);
 

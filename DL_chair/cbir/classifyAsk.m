@@ -52,10 +52,9 @@ function classifyAsk_OpeningFcn(hObject, eventdata, handles, varargin)
 	
 	handles.options.dataDir = [handles.options.dataDir, 'cbir/'];
     handles.modelFilename = [handles.options.dataDir, 'model.mat'];
-    
-    handles.model = struct;
-	
-	handles.retrievalDir = handles.unlabeledDir;
+    handles.optionsDataFilename = [handles.options.dataDir, 'options.mat'];
+
+    handles.retrievalDir = handles.options.imgDir;
 	
     set(handles.info, 'String', ['retrieval dir: ', handles.retrievalDir]);
 
@@ -108,52 +107,67 @@ function btnLoadModel_Callback(hObject, eventdata, handles)
     disp('loading model...');
     t = load(handles.modelFilename);
 	handles.model = t.model;
+    disp('finish loading model...');
+    
+    disp('loading options...');
+    t = load(handles.optionsDataFilename);
+	handles.options = t.options;
+    disp('finish loading options...');
+    
 	guidata(hObject, handles);
 	
 	assignin('base', 'model', handles.model);
-    
-    disp('loading retrievalData...');
-    t = load(handles.retrievalDataFilename);
-	handles.retrievalData = t.retrievalData;
-	guidata(hObject, handles);
-	
-	assignin('base', 'retrievalData', handles.model);
-    
-	helpdlg('model loaded successfuly!');
 end
 
 %% ==========================================================================
-function btnStart_Callback(hObject, eventdata, handles)
-	queryImage = preprocessImage1(handles.queryImage, handles.options.imageDim);
-	% extract query image features
-	imgData = cell2mat4d({queryImage});
-	queryImageFeature = cnnComputeFeature(handles.model, imgData, handles.options);
-
-    handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
-		% do classify
-		% classification
-        disp('predicting for query iamge...');
+function btnCorrect_Callback(hObject, eventdata, handles)
+    if (~isfield(handles, 'model'))
+		errordlg('Please load model first!');
+		return;
+    end
+    
+        fnames = dirRecursive(handles.retrievalDir);
+        acceptExts = {'png', 'jpg', 'gif', 'bmp', 'jpeg'};
+        [data.dirFileCnt, fnames] = cntByDir(fnames, acceptExts);
+        for fnc = fnames
+            %if handles.stoped
+            %    break;
+            %end
         
-        pred = 0;
-        if handles.classifyAlg == 2
-            pred = softmaxPredict(handles.softmaxModel, queryImageFeature);
-        elseif handles.classifyAlg == 3
-            error('predicting for retrieval features with svm not supported')
+            fn = fnc{1};
+            
+            queryImage = imread(fn);
+            plotQueryImage(queryImage);
+            
+            queryImage = preprocessImage1(queryImage, handles.options.imageDim);
+            imgData = cell2mat4d({queryImage});
+            queryImageFeature = cnnComputeFeature(handles.model, imgData, handles.options);
+            
+            handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
+            
+            % do classify
+            % classification
+            disp('predicting for query iamge...');
+            
+            pred = 0;
+            if handles.classifyAlg == 2
+                pred = softmaxPredict(handles.softmaxModel, queryImageFeature);
+            elseif handles.classifyAlg == 3
+                error('predicting for retrieval features with svm not supported')
+            end
+
+            fprintf('predicting result %d\n', pred);
+
+            newPred = confirmPred(queryImage, pred);
+            if numel(newPred) < 1
+                break;
+            end
+            newPred = str2double(newPred{1});
+
+            fprintf('newPred %d\n', newPred);
+            
+            if handles.classifyAlg ~= 1
+                set(handles.textClassifyResult, 'String', ['classify result£º', num2str(newPred)]);
+            end
         end
-        
-        fprintf('predicting result %d\n', pred);
-
-        newPred = confirmPred(queryImage, pred);
-        newPred = str2double(newPred{1});
-        
-        fprintf('newPred %d\n', newPred);
-
-        if handles.classifyAlg ~= 1
-            set(handles.textClassifyResult, 'String', ['classify result£º', num2str(newPred)]);
-        end
-        
-		cls_idxs = find(handles.out.predSet == newPred);
-        
-	handles.queryImageFeature = queryImageFeature;
-	guidata(hObject, handles);
 end

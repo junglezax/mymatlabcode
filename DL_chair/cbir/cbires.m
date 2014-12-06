@@ -61,6 +61,7 @@ function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.outFilename = [handles.options.dataDir, 'out.mat'];
     handles.modelFilename = [handles.options.dataDir, 'model.mat'];
     handles.retrievalDataFilename = [handles.options.dataDir, 'retrievalData.mat'];
+	handles.optionsDataFilename = [handles.options.dataDir, 'options.mat'];
     
     handles.out = struct;
     handles.model = struct;
@@ -517,6 +518,11 @@ function btnSaveModel_Callback(hObject, eventdata, handles)
     model = handles.model;
 	save(handles.modelFilename, 'model');
 	fprintf('model Saved\n');
+	
+	fprintf('Saving options...\n');
+    options = handles.options;
+	save(handles.optionsDataFilename, 'options');
+	fprintf('options Saved\n');
 
     fprintf('Saving retrievalData...\n');
     retrievalData = handles.retrievalData;
