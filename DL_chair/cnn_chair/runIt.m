@@ -102,9 +102,6 @@ out.trainFeatures = cnnComputeFeature(model, out.sampleOut.trainData, options);
 disp('finish computing train features...');
 toc;
 
-numTrainImages = size(out.sampleOut.trainData, 4);
-inputSize = numel(out.trainFeatures) / numTrainImages;
-	
 disp('training softmax...');
 model.softmaxModel = trainSoftmax(out.trainFeatures, out.sampleOut.trainLabels, options);
 disp('training softmax finished');

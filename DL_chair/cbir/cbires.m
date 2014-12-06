@@ -406,7 +406,10 @@ function btnTrainClassifier_Callback(hObject, eventdata, handles)
     if handles.classifyAlg == 2
         handles.labeledData = load_it(handles.labeledDir, handles.options, true);
 
-        [handles.softmaxModel, handles.sampleOut] = trainCnnSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
+		handles.sampleOut = sampleData4d(handles.labeledData.img_resized, handles.labeledData.labels);
+		handles.trainFeatures = cnnComputeFeature(handles.model, handles.sampleOut.trainData, handles.options);
+		handles.softmaxModel = trainSoftmax(handles.trainFeatures, handles.sampleOut.trainLabels, handles.options);
+        %[handles.softmaxModel, handles.sampleOut] = trainSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
         guidata(hObject, handles);
     elseif handles.classifyAlg == 3
         error('predicting for retrieval features with svm not supported')
@@ -417,7 +420,7 @@ end
 function btnTestClassifier_Callback(hObject, eventdata, handles)
 	% test classifier
     disp('computing features for test data')
-    handles.testFeatures = cnnComputeFeature(handles.model, handles.sampleOut.testImages, handles.options);
+    handles.testFeatures = cnnComputeFeature(handles.model, handles.sampleOut.testData, handles.options);
 
 	disp('predicting for test data')
     [accTest, predTest] = testSoftmax(handles.softmaxModel, handles.testFeatures, handles.sampleOut.testLabels);
