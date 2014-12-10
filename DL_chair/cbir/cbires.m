@@ -366,7 +366,7 @@ function btnCreateDB_Callback(hObject, eventdata, handles)
     
     handles.classifyAlg = get(handles.selClassifyAlg, 'Value');
     if handles.classifyAlg == 2
-        if (~isfield(handles, 'softmaxModel'))
+        if (~isfield(handles.model, 'softmaxModel'))
             errordlg('Please compute softmaxModel first!');
             return;
         end
@@ -410,6 +410,7 @@ function btnTrainClassifier_Callback(hObject, eventdata, handles)
 		handles.sampleOut = sampleData4d(handles.labeledData.img_resized, handles.labeledData.labels);
 		handles.trainFeatures = cnnComputeFeature(handles.model, handles.sampleOut.trainData, handles.options);
 		handles.model.softmaxModel = trainSoftmax(handles.trainFeatures, handles.sampleOut.trainLabels, handles.options);
+		disp('finish training softmax');
         %[handles.model.softmaxModel, handles.sampleOut] = trainSoftmax(handles.model, handles.labeledData.img_resized, handles.labeledData.labels, handles.options);
         guidata(hObject, handles);
     elseif handles.classifyAlg == 3
@@ -523,11 +524,6 @@ function btnSaveModel_Callback(hObject, eventdata, handles)
     options = handles.options;
 	save(handles.optionsFilename, 'options');
 	fprintf('options Saved\n');
-
-    fprintf('Saving retrievalData...\n');
-    retrievalData = handles.retrievalData;
-	save(handles.retrievalDataFilename, 'retrievalData');
-	fprintf('retrievalData Saved\n');
 end
 
 % --- Executes on button press in btnSaveFeaSet.
@@ -536,6 +532,11 @@ function btnSaveFeaSet_Callback(hObject, eventdata, handles)
     out = handles.out;
 	save(handles.outFilename, 'out');
 	fprintf('out set saved\n');
+
+    fprintf('Saving retrievalData...\n');
+    retrievalData = handles.retrievalData;
+	save(handles.retrievalDataFilename, 'retrievalData');
+	fprintf('retrievalData Saved\n');
 end
 
 % --- Executes on button press in btnLoadModel.
@@ -544,10 +545,6 @@ function btnLoadModel_Callback(hObject, eventdata, handles)
     t = load(handles.modelFilename);
 	handles.model = t.model;
     
-    disp('loading retrievalData...');
-    t = load(handles.retrievalDataFilename);
-	handles.retrievalData = t.retrievalData;
-    
     disp('loading options...');
     t = load(handles.optionsFilename);
 	handles.options = t.options;
@@ -555,7 +552,6 @@ function btnLoadModel_Callback(hObject, eventdata, handles)
 	guidata(hObject, handles);	
 	assignin('base', 'model', handles.model);
     assignin('base', 'options', handles.options);
-    assignin('base', 'retrievalData', handles.retrievalData);
     
 	helpdlg('model loaded successfuly!');
 end
@@ -566,10 +562,16 @@ function btnLoadFeaSet_Callback(hObject, eventdata, handles)
     disp('loading dataset');
     t = load(handles.outFilename);
 	handles.out = t.out;
+
+    disp('loading retrievalData...');
+    t = load(handles.retrievalDataFilename);
+	handles.retrievalData = t.retrievalData;
+    
 	guidata(hObject, handles);
 	
 	%make dataset visible from workspace
 	assignin('base', 'out', handles.out);
+	assignin('base', 'retrievalData', handles.retrievalData);
 	helpdlg('Dataset loaded successfuly!');
 end
 
