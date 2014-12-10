@@ -22,7 +22,7 @@ options.maxIter = 100;
 options.softmaxIter = 100;
 options.softmaxLambda = 0.001;
 
-options.labelLevel = 1;
+options.labelLevel = 2;
 options.save = false;
 options.display = 'Off';
 
