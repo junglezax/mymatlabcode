@@ -61,7 +61,7 @@ function cbires_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.outFilename = [handles.options.dataDir, 'out.mat'];
     handles.modelFilename = [handles.options.dataDir, 'model.mat'];
     handles.retrievalDataFilename = [handles.options.dataDir, 'retrievalData.mat'];
-	handles.optionsDataFilename = [handles.options.dataDir, 'options.mat'];
+	handles.optionsFilename = [handles.options.dataDir, 'options.mat'];
     
     handles.out = struct;
     handles.model = struct;
@@ -521,7 +521,7 @@ function btnSaveModel_Callback(hObject, eventdata, handles)
 	
 	fprintf('Saving options...\n');
     options = handles.options;
-	save(handles.optionsDataFilename, 'options');
+	save(handles.optionsFilename, 'options');
 	fprintf('options Saved\n');
 
     fprintf('Saving retrievalData...\n');
@@ -543,16 +543,19 @@ function btnLoadModel_Callback(hObject, eventdata, handles)
     disp('loading model...');
     t = load(handles.modelFilename);
 	handles.model = t.model;
-	guidata(hObject, handles);
-	
-	assignin('base', 'model', handles.model);
     
     disp('loading retrievalData...');
     t = load(handles.retrievalDataFilename);
 	handles.retrievalData = t.retrievalData;
-	guidata(hObject, handles);
+    
+    disp('loading options...');
+    t = load(handles.optionsFilename);
+	handles.options = t.options;
 	
-	assignin('base', 'retrievalData', handles.model);
+	guidata(hObject, handles);	
+	assignin('base', 'model', handles.model);
+    assignin('base', 'options', handles.options);
+    assignin('base', 'retrievalData', handles.retrievalData);
     
 	helpdlg('model loaded successfuly!');
 end
